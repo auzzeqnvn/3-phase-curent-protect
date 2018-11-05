@@ -26,6 +26,31 @@ Data Stack size         : 32
 
 #include <delay.h>
 
+#define	current_1	1
+#define	current_2	2
+#define	current_3	3
+#define	current_set	7
+
+#define	v_num_sample	10
+#define	v_num_noise_filter	3
+
+unsigned int	v_current_1_value = 0;
+unsigned int	v_current_2_value = 0;
+unsigned int	v_current_3_value = 0;
+unsigned int	v_current_set_value = 0;
+
+unsigned int	v_adc_current_1[v_num_sample];
+unsigned int	v_adc_current_2[v_num_sample];
+unsigned int	v_adc_current_3[v_num_sample];
+unsigned int	v_adc_current_set[v_num_sample];
+unsigned char	v_num_sample_cnt;
+unsigned char	f_adc_get_sample = 0;
+
+unsigned char	f_timer_overflow = 0;
+
+#define	BUZZER_ON	PORTB |= 0x02
+#define	BUZZER_OFF	PORTB &= 0xFD
+
 // Declare your global variables here
 
 // Timer1 overflow interrupt service routine
@@ -34,9 +59,13 @@ interrupt [TIM1_OVF] void timer1_ovf_isr(void)
 // Reinitialize Timer1 value
 TCNT1H=0xCF2C >> 8;
 TCNT1L=0xCF2C & 0xff;
+f_timer_overflow = 1;
+
 // Place your code here
 
 }
+
+
 
 // Voltage Reference: AVCC pin
 #define ADC_VREF_TYPE ((0<<REFS1) | (0<<REFS0))
@@ -53,6 +82,65 @@ ADCSRA|=(1<<ADSC);
 while ((ADCSRA & (1<<ADIF))==0);
 ADCSRA|=(1<<ADIF);
 return ADCW;
+}
+
+void	Current_get_value(void)
+{
+	unsigned char	cnt_loop = 0;
+	if(v_num_sample_cnt < v_num_sample-1 && f_adc_get_sample == 0)
+    {
+		v_adc_current_1[v_num_sample_cnt] = read_adc(current_1);
+		v_adc_current_2[v_num_sample_cnt] = read_adc(current_2);
+		v_adc_current_3[v_num_sample_cnt] = read_adc(current_3);
+		v_adc_current_set[v_num_sample_cnt] = read_adc(current_set);
+		
+		for(cnt_loop = 0; cnt_loop <= v_num_sample_cnt; cnt_loop++)
+		{
+			v_current_1_value += v_adc_current_1[cnt_loop];
+			v_current_2_value += v_adc_current_2[cnt_loop];
+			v_current_3_value += v_adc_current_3[cnt_loop];
+			v_current_set_value += v_adc_current_set[cnt_loop];
+		}
+		v_current_1_value /=(v_num_sample_cnt+1);
+		v_current_2_value /=(v_num_sample_cnt+1);
+		v_current_3_value /=(v_num_sample_cnt+1);
+		v_current_set_value /=(v_num_sample_cnt+1);
+    }
+    else
+    {
+		f_adc_get_sample = 1;
+		v_adc_current_1[v_num_sample_cnt] = read_adc(current_1);
+		v_adc_current_2[v_num_sample_cnt] = read_adc(current_2);
+		v_adc_current_3[v_num_sample_cnt] = read_adc(current_3);
+		v_adc_current_set[v_num_sample_cnt] = read_adc(current_set);
+		
+		for(cnt_loop = 0; cnt_loop < v_num_sample; cnt_loop++)
+		{
+			v_current_1_value += v_adc_current_1[cnt_loop];
+			v_current_2_value += v_adc_current_2[cnt_loop];
+			v_current_3_value += v_adc_current_3[cnt_loop];
+			v_current_set_value += v_adc_current_set[cnt_loop];
+		}
+		v_current_1_value /= v_num_sample;
+		v_current_2_value /= v_num_sample;
+		v_current_3_value /= v_num_sample;
+		v_current_set_value /= v_num_sample;
+    }
+	
+    v_num_sample_cnt++;
+	if(v_num_sample_cnt >= v_num_sample)	v_num_sample_cnt = 0;
+}
+
+void	Control(void)
+{
+	if(v_current_1_value > v_current_set_value || v_current_2_value > v_current_set_value || v_current_3_value > v_current_set_value)
+	{
+		BUZZER_ON;
+	}
+	else
+	{
+		BUZZER_OFF;
+	}
 }
 
 void main(void)
@@ -202,11 +290,14 @@ WDTCSR=(0<<WDIF) | (0<<WDIE) | (0<<WDP3) | (0<<WDCE) | (1<<WDE) | (0<<WDP2) | (0
 // Global enable interrupts
 #asm("sei")
 
-while (1)
-      {
-      // Place your code here 
-        printf(); 
-        printf();
-
-      }
+	while (1)
+	{
+		// Place your code here 
+		if(f_timer_overflow)
+		{
+			Current_get_value();
+			f_timer_overflow = 0;
+		}
+		Control();
+	}
 }
