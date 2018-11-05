@@ -31,16 +31,21 @@ Data Stack size         : 8
 #define	current_3	3
 #define	current_set	7
 
-#define	v_num_sample	10
+#define	num_sample	10
+
+#define	current_1_scale	1
+#define	current_2_scale	1
+#define	current_3_scale	1
+#define	current_set_scale	1
 //#define	v_num_noise_filter	3
 
 unsigned int	v_current_value = 0;
 unsigned int	v_current_set_value = 0;
 
-unsigned int	v_adc_current_1[v_num_sample];
-unsigned int	v_adc_current_2[v_num_sample];
-unsigned int	v_adc_current_3[v_num_sample];
-unsigned int	v_adc_current_set[v_num_sample];
+unsigned int	v_adc_current_1[num_sample];
+unsigned int	v_adc_current_2[num_sample];
+unsigned int	v_adc_current_3[num_sample];
+unsigned int	v_adc_current_set[num_sample];
 unsigned char	v_num_sample_cnt;
 
 bit	f_current_1_hight = 0;
@@ -96,7 +101,7 @@ void	Current_get_value(void)
 	v_adc_current_3[v_num_sample_cnt] = read_adc(current_3);
 	v_adc_current_set[v_num_sample_cnt] = read_adc(current_set);  
 	
-	if((v_num_sample_cnt < (v_num_sample-1)) && (f_adc_get_sample == 0))
+	if((v_num_sample_cnt < (num_sample-1)) && (f_adc_get_sample == 0))
     {         
         for(cnt_loop = 0; cnt_loop <= v_num_sample_cnt; cnt_loop++)
 		{
@@ -109,7 +114,7 @@ void	Current_get_value(void)
 			v_current_value += v_adc_current_1[cnt_loop];
 		}
 		v_current_value /= cnt_loop; 
-        if(v_current_value > v_current_set_value)	f_current_1_hight = 1;
+        if(v_current_value*current_1_scale > v_current_set_value*current_set_scale)	f_current_1_hight = 1;
 		else	f_current_1_hight = 0;
 		
 		for(cnt_loop = 0; cnt_loop <= v_num_sample_cnt; cnt_loop++)
@@ -117,7 +122,7 @@ void	Current_get_value(void)
 			v_current_value += v_adc_current_2[cnt_loop];
 		}
 		v_current_value /= cnt_loop; 
-        if(v_current_value > v_current_set_value)	f_current_2_hight = 1;
+        if(v_current_value*current_2_scale > v_current_set_value*current_set_scale)	f_current_2_hight = 1;
 		else	f_current_2_hight = 0;
 		
 		for(cnt_loop = 0; cnt_loop <= v_num_sample_cnt; cnt_loop++)
@@ -125,49 +130,48 @@ void	Current_get_value(void)
 			v_current_value += v_adc_current_3[cnt_loop];
 		}
 		v_current_value /= cnt_loop; 
-        if(v_current_value > v_current_set_value)	f_current_3_hight = 1;
+        if(v_current_value*current_3_scale > v_current_set_value*current_set_scale)	f_current_3_hight = 1;
 		else	f_current_3_hight = 0;
     }
     else
     {
 		f_adc_get_sample = 1;		
-		for(cnt_loop = 0; cnt_loop < v_num_sample; cnt_loop++)
+		for(cnt_loop = 0; cnt_loop < num_sample; cnt_loop++)
 		{
 			v_current_set_value += v_adc_current_set[cnt_loop];
 		}
-		v_current_set_value /= v_num_sample;
+		v_current_set_value /= num_sample;
 		
-		for(cnt_loop = 0; cnt_loop < v_num_sample; cnt_loop++)
+		for(cnt_loop = 0; cnt_loop < num_sample; cnt_loop++)
 		{
 			v_current_value += v_adc_current_1[cnt_loop];
 		}
-		v_current_value /=v_num_sample; 
-        if(v_current_value > v_current_set_value)	f_current_1_hight = 1;
+		v_current_value /=num_sample; 
+        if(v_current_value*current_1_scale > v_current_set_value*current_set_scale)	f_current_1_hight = 1;
 		else	f_current_1_hight = 0;
 		
-		for(cnt_loop = 0; cnt_loop < v_num_sample; cnt_loop++)
+		for(cnt_loop = 0; cnt_loop < num_sample; cnt_loop++)
 		{
 			v_current_value += v_adc_current_2[cnt_loop];
 		}
-		v_current_value /=v_num_sample; 
-        if(v_current_value > v_current_set_value)	f_current_2_hight = 1;
+		v_current_value /=num_sample; 
+        if(v_current_value*current_2_scale > v_current_set_value*current_set_scale)	f_current_2_hight = 1;
 		else	f_current_2_hight = 0;
 		
-		for(cnt_loop = 0; cnt_loop < v_num_sample; cnt_loop++)
+		for(cnt_loop = 0; cnt_loop < num_sample; cnt_loop++)
 		{
 			v_current_value += v_adc_current_3[cnt_loop];
 		}
-		v_current_value /= v_num_sample; 
-        if(v_current_value > v_current_set_value)	f_current_3_hight = 1;
-		else	f_current_3_hight = 0;
-		
+		v_current_value /= num_sample; 
+        if(v_current_value*current_3_scale > v_current_set_value*current_set_scale)	f_current_3_hight = 1;
+		else	f_current_3_hight = 0;		
     }
 	
     v_num_sample_cnt++;
-	if(v_num_sample_cnt >= v_num_sample)	v_num_sample_cnt = 0;
+	if(v_num_sample_cnt >= num_sample)	v_num_sample_cnt = 0;
 }
 
-void	Control(void)
+void	Protect_control(void)
 {
 	if(f_current_1_hight || f_current_2_hight || f_current_3_hight)
 	{
@@ -334,6 +338,6 @@ WDTCSR=(0<<WDIF) | (0<<WDIE) | (0<<WDP3) | (0<<WDCE) | (1<<WDE) | (0<<WDP2) | (0
 			Current_get_value();
 			f_timer_overflow = 0;
 		}
-		Control();
+		Protect_control();
 	}
 }
