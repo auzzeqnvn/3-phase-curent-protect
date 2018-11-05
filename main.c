@@ -19,7 +19,7 @@ Chip type               : ATtiny24
 AVR Core Clock frequency: 8,000000 MHz
 Memory model            : Tiny
 External RAM size       : 0
-Data Stack size         : 32
+Data Stack size         : 8
 *******************************************************/
 
 #include <tiny24.h>
@@ -32,11 +32,9 @@ Data Stack size         : 32
 #define	current_set	7
 
 #define	v_num_sample	10
-#define	v_num_noise_filter	3
+//#define	v_num_noise_filter	3
 
-unsigned int	v_current_1_value = 0;
-unsigned int	v_current_2_value = 0;
-unsigned int	v_current_3_value = 0;
+unsigned int	v_current_value = 0;
 unsigned int	v_current_set_value = 0;
 
 unsigned int	v_adc_current_1[v_num_sample];
@@ -44,9 +42,14 @@ unsigned int	v_adc_current_2[v_num_sample];
 unsigned int	v_adc_current_3[v_num_sample];
 unsigned int	v_adc_current_set[v_num_sample];
 unsigned char	v_num_sample_cnt;
-unsigned char	f_adc_get_sample = 0;
 
-unsigned char	f_timer_overflow = 0;
+bit	f_current_1_hight = 0;
+bit	f_current_2_hight = 0;
+bit	f_current_3_hight = 0;
+
+bit	f_adc_get_sample = 0;
+
+bit	f_timer_overflow = 0;
 
 #define	BUZZER_ON	PORTB |= 0x02
 #define	BUZZER_OFF	PORTB &= 0xFD
@@ -87,44 +90,77 @@ return ADCW;
 void	Current_get_value(void)
 {
 	unsigned char	cnt_loop = 0;
-	if(v_num_sample_cnt < v_num_sample-1 && f_adc_get_sample == 0)
-    {
-		v_adc_current_1[v_num_sample_cnt] = read_adc(current_1);
-		v_adc_current_2[v_num_sample_cnt] = read_adc(current_2);
-		v_adc_current_3[v_num_sample_cnt] = read_adc(current_3);
-		v_adc_current_set[v_num_sample_cnt] = read_adc(current_set);
+	
+	v_adc_current_1[v_num_sample_cnt] = read_adc(current_1);
+	v_adc_current_2[v_num_sample_cnt] = read_adc(current_2);
+	v_adc_current_3[v_num_sample_cnt] = read_adc(current_3);
+	v_adc_current_set[v_num_sample_cnt] = read_adc(current_set);  
+	
+	if((v_num_sample_cnt < (v_num_sample-1)) && (f_adc_get_sample == 0))
+    {         
+        for(cnt_loop = 0; cnt_loop <= v_num_sample_cnt; cnt_loop++)
+		{
+			v_current_set_value += v_adc_current_set[cnt_loop];
+		}
+		v_current_set_value /= cnt_loop;
+        
+		for(cnt_loop = 0; cnt_loop <= v_num_sample_cnt; cnt_loop++)
+		{
+			v_current_value += v_adc_current_1[cnt_loop];
+		}
+		v_current_value /= cnt_loop; 
+        if(v_current_value > v_current_set_value)	f_current_1_hight = 1;
+		else	f_current_1_hight = 0;
 		
 		for(cnt_loop = 0; cnt_loop <= v_num_sample_cnt; cnt_loop++)
 		{
-			v_current_1_value += v_adc_current_1[cnt_loop];
-			v_current_2_value += v_adc_current_2[cnt_loop];
-			v_current_3_value += v_adc_current_3[cnt_loop];
-			v_current_set_value += v_adc_current_set[cnt_loop];
+			v_current_value += v_adc_current_2[cnt_loop];
 		}
-		v_current_1_value /=(v_num_sample_cnt+1);
-		v_current_2_value /=(v_num_sample_cnt+1);
-		v_current_3_value /=(v_num_sample_cnt+1);
-		v_current_set_value /=(v_num_sample_cnt+1);
+		v_current_value /= cnt_loop; 
+        if(v_current_value > v_current_set_value)	f_current_2_hight = 1;
+		else	f_current_2_hight = 0;
+		
+		for(cnt_loop = 0; cnt_loop <= v_num_sample_cnt; cnt_loop++)
+		{
+			v_current_value += v_adc_current_3[cnt_loop];
+		}
+		v_current_value /= cnt_loop; 
+        if(v_current_value > v_current_set_value)	f_current_3_hight = 1;
+		else	f_current_3_hight = 0;
     }
     else
     {
-		f_adc_get_sample = 1;
-		v_adc_current_1[v_num_sample_cnt] = read_adc(current_1);
-		v_adc_current_2[v_num_sample_cnt] = read_adc(current_2);
-		v_adc_current_3[v_num_sample_cnt] = read_adc(current_3);
-		v_adc_current_set[v_num_sample_cnt] = read_adc(current_set);
+		f_adc_get_sample = 1;		
+		for(cnt_loop = 0; cnt_loop < v_num_sample; cnt_loop++)
+		{
+			v_current_set_value += v_adc_current_set[cnt_loop];
+		}
+		v_current_set_value /= v_num_sample;
 		
 		for(cnt_loop = 0; cnt_loop < v_num_sample; cnt_loop++)
 		{
-			v_current_1_value += v_adc_current_1[cnt_loop];
-			v_current_2_value += v_adc_current_2[cnt_loop];
-			v_current_3_value += v_adc_current_3[cnt_loop];
-			v_current_set_value += v_adc_current_set[cnt_loop];
+			v_current_value += v_adc_current_1[cnt_loop];
 		}
-		v_current_1_value /= v_num_sample;
-		v_current_2_value /= v_num_sample;
-		v_current_3_value /= v_num_sample;
-		v_current_set_value /= v_num_sample;
+		v_current_value /=v_num_sample; 
+        if(v_current_value > v_current_set_value)	f_current_1_hight = 1;
+		else	f_current_1_hight = 0;
+		
+		for(cnt_loop = 0; cnt_loop < v_num_sample; cnt_loop++)
+		{
+			v_current_value += v_adc_current_2[cnt_loop];
+		}
+		v_current_value /=v_num_sample; 
+        if(v_current_value > v_current_set_value)	f_current_2_hight = 1;
+		else	f_current_2_hight = 0;
+		
+		for(cnt_loop = 0; cnt_loop < v_num_sample; cnt_loop++)
+		{
+			v_current_value += v_adc_current_3[cnt_loop];
+		}
+		v_current_value /= v_num_sample; 
+        if(v_current_value > v_current_set_value)	f_current_3_hight = 1;
+		else	f_current_3_hight = 0;
+		
     }
 	
     v_num_sample_cnt++;
@@ -133,7 +169,7 @@ void	Current_get_value(void)
 
 void	Control(void)
 {
-	if(v_current_1_value > v_current_set_value || v_current_2_value > v_current_set_value || v_current_3_value > v_current_set_value)
+	if(f_current_1_hight || f_current_2_hight || f_current_3_hight)
 	{
 		BUZZER_ON;
 	}
@@ -155,35 +191,35 @@ CLKPR=(0<<CLKPCE) | (0<<CLKPS3) | (0<<CLKPS2) | (0<<CLKPS1) | (0<<CLKPS0);
 #pragma optsize+
 #endif
 
-// Reset Source checking
-if (MCUSR & (1<<PORF))
-   {
-   // Power-on Reset
-   MCUSR=0;
-   // Place your code here
-
-   }
-else if (MCUSR & (1<<EXTRF))
-   {
-   // External Reset
-   MCUSR=0;
-   // Place your code here
-
-   }
-else if (MCUSR & (1<<BORF))
-   {
-   // Brown-Out Reset
-   MCUSR=0;
-   // Place your code here
-
-   }
-else
-   {
-   // Watchdog Reset
-   MCUSR=0;
-   // Place your code here
-
-   }
+//// Reset Source checking
+//if (MCUSR & (1<<PORF))
+//   {
+//   // Power-on Reset
+//   MCUSR=0;
+//   // Place your code here
+//
+//   }
+//else if (MCUSR & (1<<EXTRF))
+//   {
+//   // External Reset
+//   MCUSR=0;
+//   // Place your code here
+//
+//   }
+//else if (MCUSR & (1<<BORF))
+//   {
+//   // Brown-Out Reset
+//   MCUSR=0;
+//   // Place your code here
+//
+//   }
+//else
+//   {
+//   // Watchdog Reset
+//   MCUSR=0;
+//   // Place your code here
+//
+//   }
 
 // Input/Output Ports initialization
 // Port A initialization
