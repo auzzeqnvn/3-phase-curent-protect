@@ -2,7 +2,7 @@
 This program was created by the
 CodeWizardAVR V3.12 Advanced
 Automatic Program Generator
-© Copyright 1998-2014 Pavel Haiduc, HP InfoTech s.r.l.
+ï¿½ Copyright 1998-2014 Pavel Haiduc, HP InfoTech s.r.l.
 http://www.hpinfotech.com
 
 Project : 3 Phase curent protect
@@ -100,6 +100,7 @@ void	Current_get_value(void)
 	v_adc_current_2[v_num_sample_cnt] = read_adc(current_2);
 	v_adc_current_3[v_num_sample_cnt] = read_adc(current_3);
 	v_adc_current_set[v_num_sample_cnt] = read_adc(current_set);  
+
 	
 	if((v_num_sample_cnt < (num_sample-1)) && (f_adc_get_sample == 0))
     {         
@@ -339,5 +340,6 @@ WDTCSR=(0<<WDIF) | (0<<WDIE) | (0<<WDP3) | (0<<WDCE) | (1<<WDE) | (0<<WDP2) | (0
 			f_timer_overflow = 0;
 		}
 		Protect_control();
+		//Test
 	}
 }
