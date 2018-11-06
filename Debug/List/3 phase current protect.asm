@@ -6,7 +6,7 @@
 ;Build configuration    : Debug
 ;Chip type              : ATtiny24
 ;Program type           : Application
-;Clock frequency        : 8.000000 MHz
+;Clock frequency        : 8,000000 MHz
 ;Memory model           : Tiny
 ;Optimize for           : Size
 ;(s)printf features     : int
@@ -1475,29 +1475,28 @@ _0x43:
 	RJMP _0x47
 _0x44:
 	CBI  0x13,2
-; 0000 00A8 
-; 0000 00A9     }
+; 0000 00A8     }
 _0x47:
 _0x29:
-; 0000 00AA 
-; 0000 00AB     v_num_sample_cnt++;
+; 0000 00A9 
+; 0000 00AA     v_num_sample_cnt++;
 	INC  R7
-; 0000 00AC 	if(v_num_sample_cnt >= num_sample)	v_num_sample_cnt = 0;
+; 0000 00AB 	if(v_num_sample_cnt >= num_sample)	v_num_sample_cnt = 0;
 	LDI  R30,LOW(10)
 	CP   R7,R30
 	BRLO _0x4A
 	CLR  R7
-; 0000 00AD }
+; 0000 00AC }
 _0x4A:
 	LD   R17,Y+
 	RET
 ; .FEND
 ;
-;void	Control(void)
-; 0000 00B0 {
-_Control:
-; .FSTART _Control
-; 0000 00B1 	if(f_current_1_hight || f_current_2_hight || f_current_3_hight)
+;void	Protect_control(void)
+; 0000 00AF {
+_Protect_control:
+; .FSTART _Protect_control
+; 0000 00B0 	if(f_current_1_hight || f_current_2_hight || f_current_3_hight)
 	SBIC 0x13,0
 	RJMP _0x4C
 	SBIC 0x13,1
@@ -1505,240 +1504,240 @@ _Control:
 	SBIS 0x13,2
 	RJMP _0x4B
 _0x4C:
-; 0000 00B2 	{
-; 0000 00B3 		BUZZER_ON;
+; 0000 00B1 	{
+; 0000 00B2 		BUZZER_ON;
 	SBI  0x18,1
-; 0000 00B4 	}
-; 0000 00B5 	else
+; 0000 00B3 	}
+; 0000 00B4 	else
 	RJMP _0x4E
 _0x4B:
-; 0000 00B6 	{
-; 0000 00B7 		BUZZER_OFF;
+; 0000 00B5 	{
+; 0000 00B6 		BUZZER_OFF;
 	CBI  0x18,1
-; 0000 00B8 	}
+; 0000 00B7 	}
 _0x4E:
-; 0000 00B9 }
+; 0000 00B8 }
 	RET
 ; .FEND
 ;
 ;void main(void)
-; 0000 00BC {
+; 0000 00BB {
 _main:
 ; .FSTART _main
-; 0000 00BD // Declare your local variables here
-; 0000 00BE 
-; 0000 00BF // Crystal Oscillator division factor: 1
-; 0000 00C0 #pragma optsize-
-; 0000 00C1 CLKPR=(1<<CLKPCE);
+; 0000 00BC // Declare your local variables here
+; 0000 00BD 
+; 0000 00BE // Crystal Oscillator division factor: 1
+; 0000 00BF #pragma optsize-
+; 0000 00C0 CLKPR=(1<<CLKPCE);
 	LDI  R30,LOW(128)
 	OUT  0x26,R30
-; 0000 00C2 CLKPR=(0<<CLKPCE) | (0<<CLKPS3) | (0<<CLKPS2) | (0<<CLKPS1) | (0<<CLKPS0);
+; 0000 00C1 CLKPR=(0<<CLKPCE) | (0<<CLKPS3) | (0<<CLKPS2) | (0<<CLKPS1) | (0<<CLKPS0);
 	LDI  R30,LOW(0)
 	OUT  0x26,R30
-; 0000 00C3 #ifdef _OPTIMIZE_SIZE_
-; 0000 00C4 #pragma optsize+
-; 0000 00C5 #endif
-; 0000 00C6 
-; 0000 00C7 //// Reset Source checking
-; 0000 00C8 //if (MCUSR & (1<<PORF))
-; 0000 00C9 //   {
-; 0000 00CA //   // Power-on Reset
-; 0000 00CB //   MCUSR=0;
-; 0000 00CC //   // Place your code here
-; 0000 00CD //
-; 0000 00CE //   }
-; 0000 00CF //else if (MCUSR & (1<<EXTRF))
-; 0000 00D0 //   {
-; 0000 00D1 //   // External Reset
-; 0000 00D2 //   MCUSR=0;
-; 0000 00D3 //   // Place your code here
-; 0000 00D4 //
-; 0000 00D5 //   }
-; 0000 00D6 //else if (MCUSR & (1<<BORF))
-; 0000 00D7 //   {
-; 0000 00D8 //   // Brown-Out Reset
-; 0000 00D9 //   MCUSR=0;
-; 0000 00DA //   // Place your code here
-; 0000 00DB //
-; 0000 00DC //   }
-; 0000 00DD //else
-; 0000 00DE //   {
-; 0000 00DF //   // Watchdog Reset
-; 0000 00E0 //   MCUSR=0;
-; 0000 00E1 //   // Place your code here
-; 0000 00E2 //
-; 0000 00E3 //   }
-; 0000 00E4 
-; 0000 00E5 // Input/Output Ports initialization
-; 0000 00E6 // Port A initialization
-; 0000 00E7 // Function: Bit7=In Bit6=In Bit5=In Bit4=In Bit3=In Bit2=In Bit1=In Bit0=In
-; 0000 00E8 DDRA=(0<<DDA7) | (0<<DDA6) | (0<<DDA5) | (0<<DDA4) | (0<<DDA3) | (0<<DDA2) | (0<<DDA1) | (0<<DDA0);
+; 0000 00C2 #ifdef _OPTIMIZE_SIZE_
+; 0000 00C3 #pragma optsize+
+; 0000 00C4 #endif
+; 0000 00C5 
+; 0000 00C6 //// Reset Source checking
+; 0000 00C7 //if (MCUSR & (1<<PORF))
+; 0000 00C8 //   {
+; 0000 00C9 //   // Power-on Reset
+; 0000 00CA //   MCUSR=0;
+; 0000 00CB //   // Place your code here
+; 0000 00CC //
+; 0000 00CD //   }
+; 0000 00CE //else if (MCUSR & (1<<EXTRF))
+; 0000 00CF //   {
+; 0000 00D0 //   // External Reset
+; 0000 00D1 //   MCUSR=0;
+; 0000 00D2 //   // Place your code here
+; 0000 00D3 //
+; 0000 00D4 //   }
+; 0000 00D5 //else if (MCUSR & (1<<BORF))
+; 0000 00D6 //   {
+; 0000 00D7 //   // Brown-Out Reset
+; 0000 00D8 //   MCUSR=0;
+; 0000 00D9 //   // Place your code here
+; 0000 00DA //
+; 0000 00DB //   }
+; 0000 00DC //else
+; 0000 00DD //   {
+; 0000 00DE //   // Watchdog Reset
+; 0000 00DF //   MCUSR=0;
+; 0000 00E0 //   // Place your code here
+; 0000 00E1 //
+; 0000 00E2 //   }
+; 0000 00E3 
+; 0000 00E4 // Input/Output Ports initialization
+; 0000 00E5 // Port A initialization
+; 0000 00E6 // Function: Bit7=In Bit6=In Bit5=In Bit4=In Bit3=In Bit2=In Bit1=In Bit0=In
+; 0000 00E7 DDRA=(0<<DDA7) | (0<<DDA6) | (0<<DDA5) | (0<<DDA4) | (0<<DDA3) | (0<<DDA2) | (0<<DDA1) | (0<<DDA0);
 	OUT  0x1A,R30
-; 0000 00E9 // State: Bit7=T Bit6=T Bit5=T Bit4=T Bit3=T Bit2=T Bit1=T Bit0=T
-; 0000 00EA PORTA=(0<<PORTA7) | (0<<PORTA6) | (0<<PORTA5) | (0<<PORTA4) | (0<<PORTA3) | (0<<PORTA2) | (0<<PORTA1) | (0<<PORTA0);
+; 0000 00E8 // State: Bit7=T Bit6=T Bit5=T Bit4=T Bit3=T Bit2=T Bit1=T Bit0=T
+; 0000 00E9 PORTA=(0<<PORTA7) | (0<<PORTA6) | (0<<PORTA5) | (0<<PORTA4) | (0<<PORTA3) | (0<<PORTA2) | (0<<PORTA1) | (0<<PORTA0);
 	OUT  0x1B,R30
-; 0000 00EB 
-; 0000 00EC // Port B initialization
-; 0000 00ED // Function: Bit3=Out Bit2=In Bit1=Out Bit0=Out
-; 0000 00EE DDRB=(1<<DDB3) | (0<<DDB2) | (1<<DDB1) | (1<<DDB0);
+; 0000 00EA 
+; 0000 00EB // Port B initialization
+; 0000 00EC // Function: Bit3=Out Bit2=In Bit1=Out Bit0=Out
+; 0000 00ED DDRB=(1<<DDB3) | (0<<DDB2) | (1<<DDB1) | (1<<DDB0);
 	LDI  R30,LOW(11)
 	OUT  0x17,R30
-; 0000 00EF // State: Bit3=0 Bit2=T Bit1=0 Bit0=0
-; 0000 00F0 PORTB=(0<<PORTB3) | (0<<PORTB2) | (0<<PORTB1) | (0<<PORTB0);
+; 0000 00EE // State: Bit3=0 Bit2=T Bit1=0 Bit0=0
+; 0000 00EF PORTB=(0<<PORTB3) | (0<<PORTB2) | (0<<PORTB1) | (0<<PORTB0);
 	LDI  R30,LOW(0)
 	OUT  0x18,R30
-; 0000 00F1 
-; 0000 00F2 // Timer/Counter 0 initialization
-; 0000 00F3 // Clock source: System Clock
-; 0000 00F4 // Clock value: Timer 0 Stopped
-; 0000 00F5 // Mode: Normal top=0xFF
-; 0000 00F6 // OC0A output: Disconnected
-; 0000 00F7 // OC0B output: Disconnected
-; 0000 00F8 TCCR0A=(0<<COM0A1) | (0<<COM0A0) | (0<<COM0B1) | (0<<COM0B0) | (0<<WGM01) | (0<<WGM00);
+; 0000 00F0 
+; 0000 00F1 // Timer/Counter 0 initialization
+; 0000 00F2 // Clock source: System Clock
+; 0000 00F3 // Clock value: Timer 0 Stopped
+; 0000 00F4 // Mode: Normal top=0xFF
+; 0000 00F5 // OC0A output: Disconnected
+; 0000 00F6 // OC0B output: Disconnected
+; 0000 00F7 TCCR0A=(0<<COM0A1) | (0<<COM0A0) | (0<<COM0B1) | (0<<COM0B0) | (0<<WGM01) | (0<<WGM00);
 	OUT  0x30,R30
-; 0000 00F9 TCCR0B=(0<<WGM02) | (0<<CS02) | (0<<CS01) | (0<<CS00);
+; 0000 00F8 TCCR0B=(0<<WGM02) | (0<<CS02) | (0<<CS01) | (0<<CS00);
 	OUT  0x33,R30
-; 0000 00FA TCNT0=0x00;
+; 0000 00F9 TCNT0=0x00;
 	OUT  0x32,R30
-; 0000 00FB OCR0A=0x00;
+; 0000 00FA OCR0A=0x00;
 	OUT  0x36,R30
-; 0000 00FC OCR0B=0x00;
+; 0000 00FB OCR0B=0x00;
 	OUT  0x3C,R30
-; 0000 00FD 
-; 0000 00FE // Timer/Counter 1 initialization
-; 0000 00FF // Clock source: System Clock
-; 0000 0100 // Clock value: 125,000 kHz
-; 0000 0101 // Mode: Normal top=0xFFFF
-; 0000 0102 // OC1A output: Disconnected
-; 0000 0103 // OC1B output: Disconnected
-; 0000 0104 // Noise Canceler: Off
-; 0000 0105 // Input Capture on Falling Edge
-; 0000 0106 // Timer Period: 0,1 s
-; 0000 0107 // Timer1 Overflow Interrupt: On
-; 0000 0108 // Input Capture Interrupt: Off
-; 0000 0109 // Compare A Match Interrupt: Off
-; 0000 010A // Compare B Match Interrupt: Off
-; 0000 010B TCCR1A=(0<<COM1A1) | (0<<COM1A0) | (0<<COM1B1) | (0<<COM1B0) | (0<<WGM11) | (0<<WGM10);
+; 0000 00FC 
+; 0000 00FD // Timer/Counter 1 initialization
+; 0000 00FE // Clock source: System Clock
+; 0000 00FF // Clock value: 125,000 kHz
+; 0000 0100 // Mode: Normal top=0xFFFF
+; 0000 0101 // OC1A output: Disconnected
+; 0000 0102 // OC1B output: Disconnected
+; 0000 0103 // Noise Canceler: Off
+; 0000 0104 // Input Capture on Falling Edge
+; 0000 0105 // Timer Period: 0,1 s
+; 0000 0106 // Timer1 Overflow Interrupt: On
+; 0000 0107 // Input Capture Interrupt: Off
+; 0000 0108 // Compare A Match Interrupt: Off
+; 0000 0109 // Compare B Match Interrupt: Off
+; 0000 010A TCCR1A=(0<<COM1A1) | (0<<COM1A0) | (0<<COM1B1) | (0<<COM1B0) | (0<<WGM11) | (0<<WGM10);
 	OUT  0x2F,R30
-; 0000 010C TCCR1B=(0<<ICNC1) | (0<<ICES1) | (0<<WGM13) | (0<<WGM12) | (0<<CS12) | (1<<CS11) | (1<<CS10);
+; 0000 010B TCCR1B=(0<<ICNC1) | (0<<ICES1) | (0<<WGM13) | (0<<WGM12) | (0<<CS12) | (1<<CS11) | (1<<CS10);
 	LDI  R30,LOW(3)
 	OUT  0x2E,R30
-; 0000 010D TCNT1H=0xCF;
+; 0000 010C TCNT1H=0xCF;
 	RCALL SUBOPT_0x0
-; 0000 010E TCNT1L=0x2C;
-; 0000 010F ICR1H=0x00;
+; 0000 010D TCNT1L=0x2C;
+; 0000 010E ICR1H=0x00;
 	LDI  R30,LOW(0)
 	OUT  0x25,R30
-; 0000 0110 ICR1L=0x00;
+; 0000 010F ICR1L=0x00;
 	OUT  0x24,R30
-; 0000 0111 OCR1AH=0x00;
+; 0000 0110 OCR1AH=0x00;
 	OUT  0x2B,R30
-; 0000 0112 OCR1AL=0x00;
+; 0000 0111 OCR1AL=0x00;
 	OUT  0x2A,R30
-; 0000 0113 OCR1BH=0x00;
+; 0000 0112 OCR1BH=0x00;
 	OUT  0x29,R30
-; 0000 0114 OCR1BL=0x00;
+; 0000 0113 OCR1BL=0x00;
 	OUT  0x28,R30
-; 0000 0115 
-; 0000 0116 // Timer/Counter 0 Interrupt(s) initialization
-; 0000 0117 TIMSK0=(0<<OCIE0B) | (0<<OCIE0A) | (0<<TOIE0);
+; 0000 0114 
+; 0000 0115 // Timer/Counter 0 Interrupt(s) initialization
+; 0000 0116 TIMSK0=(0<<OCIE0B) | (0<<OCIE0A) | (0<<TOIE0);
 	OUT  0x39,R30
-; 0000 0118 
-; 0000 0119 // Timer/Counter 1 Interrupt(s) initialization
-; 0000 011A TIMSK1=(0<<ICIE1) | (0<<OCIE1B) | (0<<OCIE1A) | (1<<TOIE1);
+; 0000 0117 
+; 0000 0118 // Timer/Counter 1 Interrupt(s) initialization
+; 0000 0119 TIMSK1=(0<<ICIE1) | (0<<OCIE1B) | (0<<OCIE1A) | (1<<TOIE1);
 	LDI  R30,LOW(1)
 	OUT  0xC,R30
-; 0000 011B 
-; 0000 011C // External Interrupt(s) initialization
-; 0000 011D // INT0: Off
-; 0000 011E // Interrupt on any change on pins PCINT0-7: Off
-; 0000 011F // Interrupt on any change on pins PCINT8-11: Off
-; 0000 0120 MCUCR=(0<<ISC01) | (0<<ISC00);
+; 0000 011A 
+; 0000 011B // External Interrupt(s) initialization
+; 0000 011C // INT0: Off
+; 0000 011D // Interrupt on any change on pins PCINT0-7: Off
+; 0000 011E // Interrupt on any change on pins PCINT8-11: Off
+; 0000 011F MCUCR=(0<<ISC01) | (0<<ISC00);
 	LDI  R30,LOW(0)
 	OUT  0x35,R30
-; 0000 0121 GIMSK=(0<<INT0) | (0<<PCIE1) | (0<<PCIE0);
+; 0000 0120 GIMSK=(0<<INT0) | (0<<PCIE1) | (0<<PCIE0);
 	OUT  0x3B,R30
-; 0000 0122 
-; 0000 0123 // USI initialization
-; 0000 0124 // Mode: Disabled
-; 0000 0125 // Clock source: Register & Counter=no clk.
-; 0000 0126 // USI Counter Overflow Interrupt: Off
-; 0000 0127 USICR=(0<<USISIE) | (0<<USIOIE) | (0<<USIWM1) | (0<<USIWM0) | (0<<USICS1) | (0<<USICS0) | (0<<USICLK) | (0<<USITC);
+; 0000 0121 
+; 0000 0122 // USI initialization
+; 0000 0123 // Mode: Disabled
+; 0000 0124 // Clock source: Register & Counter=no clk.
+; 0000 0125 // USI Counter Overflow Interrupt: Off
+; 0000 0126 USICR=(0<<USISIE) | (0<<USIOIE) | (0<<USIWM1) | (0<<USIWM0) | (0<<USICS1) | (0<<USICS0) | (0<<USICLK) | (0<<USITC);
 	OUT  0xD,R30
-; 0000 0128 
-; 0000 0129 // Analog Comparator initialization
-; 0000 012A // Analog Comparator: Off
-; 0000 012B // The Analog Comparator's positive input is
-; 0000 012C // connected to the AIN0 pin
-; 0000 012D // The Analog Comparator's negative input is
-; 0000 012E // connected to the AIN1 pin
-; 0000 012F ACSR=(1<<ACD) | (0<<ACBG) | (0<<ACO) | (0<<ACI) | (0<<ACIE) | (0<<ACIC) | (0<<ACIS1) | (0<<ACIS0);
+; 0000 0127 
+; 0000 0128 // Analog Comparator initialization
+; 0000 0129 // Analog Comparator: Off
+; 0000 012A // The Analog Comparator's positive input is
+; 0000 012B // connected to the AIN0 pin
+; 0000 012C // The Analog Comparator's negative input is
+; 0000 012D // connected to the AIN1 pin
+; 0000 012E ACSR=(1<<ACD) | (0<<ACBG) | (0<<ACO) | (0<<ACI) | (0<<ACIE) | (0<<ACIC) | (0<<ACIS1) | (0<<ACIS0);
 	LDI  R30,LOW(128)
 	OUT  0x8,R30
-; 0000 0130 // Digital input buffer on AIN0: On
-; 0000 0131 // Digital input buffer on AIN1: On
-; 0000 0132 DIDR0=(0<<ADC1D) | (0<<ADC2D);
+; 0000 012F // Digital input buffer on AIN0: On
+; 0000 0130 // Digital input buffer on AIN1: On
+; 0000 0131 DIDR0=(0<<ADC1D) | (0<<ADC2D);
 	LDI  R30,LOW(0)
 	OUT  0x1,R30
-; 0000 0133 
-; 0000 0134 // ADC initialization
-; 0000 0135 // ADC Clock frequency: 1000,000 kHz
-; 0000 0136 // ADC Voltage Reference: AVCC pin
-; 0000 0137 // ADC Bipolar Input Mode: Off
-; 0000 0138 // ADC Auto Trigger Source: Free Running
-; 0000 0139 // Digital input buffers on ADC0: Off, ADC1: On, ADC2: On, ADC3: On
-; 0000 013A // ADC4: Off, ADC5: Off, ADC6: Off, ADC7: On
-; 0000 013B DIDR0=(0<<ADC7D) | (1<<ADC6D) | (1<<ADC5D) | (1<<ADC4D) | (0<<ADC3D) | (0<<ADC2D) | (0<<ADC1D) | (1<<ADC0D);
+; 0000 0132 
+; 0000 0133 // ADC initialization
+; 0000 0134 // ADC Clock frequency: 1000,000 kHz
+; 0000 0135 // ADC Voltage Reference: AVCC pin
+; 0000 0136 // ADC Bipolar Input Mode: Off
+; 0000 0137 // ADC Auto Trigger Source: Free Running
+; 0000 0138 // Digital input buffers on ADC0: Off, ADC1: On, ADC2: On, ADC3: On
+; 0000 0139 // ADC4: Off, ADC5: Off, ADC6: Off, ADC7: On
+; 0000 013A DIDR0=(0<<ADC7D) | (1<<ADC6D) | (1<<ADC5D) | (1<<ADC4D) | (0<<ADC3D) | (0<<ADC2D) | (0<<ADC1D) | (1<<ADC0D);
 	LDI  R30,LOW(113)
 	OUT  0x1,R30
-; 0000 013C ADMUX=ADC_VREF_TYPE;
+; 0000 013B ADMUX=ADC_VREF_TYPE;
 	LDI  R30,LOW(0)
 	OUT  0x7,R30
-; 0000 013D ADCSRA=(1<<ADEN) | (0<<ADSC) | (1<<ADATE) | (0<<ADIF) | (0<<ADIE) | (0<<ADPS2) | (1<<ADPS1) | (1<<ADPS0);
+; 0000 013C ADCSRA=(1<<ADEN) | (0<<ADSC) | (1<<ADATE) | (0<<ADIF) | (0<<ADIE) | (0<<ADPS2) | (1<<ADPS1) | (1<<ADPS0);
 	LDI  R30,LOW(163)
 	OUT  0x6,R30
-; 0000 013E ADCSRB=(0<<BIN) | (0<<ADLAR) | (0<<ADTS2) | (0<<ADTS1) | (0<<ADTS0);
+; 0000 013D ADCSRB=(0<<BIN) | (0<<ADLAR) | (0<<ADTS2) | (0<<ADTS1) | (0<<ADTS0);
 	LDI  R30,LOW(0)
 	OUT  0x3,R30
+; 0000 013E 
 ; 0000 013F 
-; 0000 0140 
-; 0000 0141 // Watchdog Timer initialization
-; 0000 0142 // Watchdog Timer Prescaler: OSC/2k
-; 0000 0143 // Watchdog timeout action: Reset
-; 0000 0144 #pragma optsize-
-; 0000 0145 WDTCSR=(0<<WDIF) | (0<<WDIE) | (0<<WDP3) | (1<<WDCE) | (1<<WDE) | (0<<WDP2) | (0<<WDP1) | (0<<WDP0);
+; 0000 0140 // Watchdog Timer initialization
+; 0000 0141 // Watchdog Timer Prescaler: OSC/2k
+; 0000 0142 // Watchdog timeout action: Reset
+; 0000 0143 #pragma optsize-
+; 0000 0144 WDTCSR=(0<<WDIF) | (0<<WDIE) | (0<<WDP3) | (1<<WDCE) | (1<<WDE) | (0<<WDP2) | (0<<WDP1) | (0<<WDP0);
 	LDI  R30,LOW(24)
 	OUT  0x21,R30
-; 0000 0146 WDTCSR=(0<<WDIF) | (0<<WDIE) | (0<<WDP3) | (0<<WDCE) | (1<<WDE) | (0<<WDP2) | (0<<WDP1) | (0<<WDP0);
+; 0000 0145 WDTCSR=(0<<WDIF) | (0<<WDIE) | (0<<WDP3) | (0<<WDCE) | (1<<WDE) | (0<<WDP2) | (0<<WDP1) | (0<<WDP0);
 	LDI  R30,LOW(8)
 	OUT  0x21,R30
-; 0000 0147 #ifdef _OPTIMIZE_SIZE_
-; 0000 0148 #pragma optsize+
-; 0000 0149 #endif
-; 0000 014A 
-; 0000 014B // Global enable interrupts
-; 0000 014C #asm("sei")
+; 0000 0146 #ifdef _OPTIMIZE_SIZE_
+; 0000 0147 #pragma optsize+
+; 0000 0148 #endif
+; 0000 0149 
+; 0000 014A // Global enable interrupts
+; 0000 014B #asm("sei")
 	sei
-; 0000 014D 
-; 0000 014E 	while (1)
+; 0000 014C 
+; 0000 014D 	while (1)
 _0x4F:
-; 0000 014F 	{
-; 0000 0150 		// Place your code here
-; 0000 0151 		if(f_timer_overflow)
+; 0000 014E 	{
+; 0000 014F 		// Place your code here
+; 0000 0150 		if(f_timer_overflow)
 	SBIS 0x13,4
 	RJMP _0x52
-; 0000 0152 		{
-; 0000 0153 			Current_get_value();
+; 0000 0151 		{
+; 0000 0152 			Current_get_value();
 	RCALL _Current_get_value
-; 0000 0154 			f_timer_overflow = 0;
+; 0000 0153 			f_timer_overflow = 0;
 	CBI  0x13,4
-; 0000 0155 		}
-; 0000 0156 		Control();
+; 0000 0154 		}
+; 0000 0155 		Protect_control();
 _0x52:
-	RCALL _Control
-; 0000 0157 	}
+	RCALL _Protect_control
+; 0000 0156 	}
 	RJMP _0x4F
-; 0000 0158 }
+; 0000 0157 }
 _0x55:
 	RJMP _0x55
 ; .FEND

@@ -26,7 +26,7 @@ Active0=0
 EditorPanel0=0
 PageIndex0=0
 EditorPanel1=0
-TimeStamp1=1298504242
+TimeStamp1=1298553269
 PageIndex1=1
 F1=main.c
 [CompilerDebug]
@@ -127,8 +127,8 @@ WatchAVR8LAutoVariables=0
 UseEEPROMLocation0=1
 RebuildAll=0
 LinkageInformationPresent=1
-COFFileTimeStamp=1298510486
-Build=16
+COFFileTimeStamp=1298559691
+Build=17
 [DefinedSymbolsDebug]
 Count=0
 [Compiler]
@@ -230,7 +230,7 @@ UseEEPROMLocation0=1
 RebuildAll=1
 LinkageInformationPresent=0
 COFFileTimeStamp=-1
-Build=16
+Build=17
 IncludePath0=
 IncludePath1=
 IncludePath2=
@@ -450,16 +450,16 @@ Row=0
 Column=0
 ScrollPosX=0
 ScrollPosY=0
-TimeStamp=1298504417
+TimeStamp=1298560276
 [BookmarksFoldedCode]
 Files=1
 F1=main.c
 [Bookmarks1]
-TimeStamp=1298510740
-Row=336
-Column=33
+TimeStamp=1298553269
+Row=15
+Column=106
 ScrollPosX=0
-ScrollPosY=329
+ScrollPosY=0
 BK0=-1
 BK1=-1
 BK2=-1
@@ -473,7 +473,7 @@ BK9=-1
 [BuildInfoCompiler]
 L1=Build configuration: Debug
 L2=Chip: ATtiny24
-L3=Clock frequency: 8.000000 MHz
+L3=Clock frequency: 8,000000 MHz
 L4=Memory model: Tiny
 L5=Optimize for: Size
 L6=(s)printf features: int
@@ -487,7 +487,7 @@ L13=Automatic register allocation: Yes
 L14=Smart register allocation: Yes
 L15=
 L16=Build: 16
-L17=952 line(s) compiled
+L17=951 line(s) compiled
 L18=No errors
 L19=No warnings
 L20=
@@ -507,15 +507,15 @@ L33=
 L34=Heap size: 0 byte(s)
 L35=
 Lines=38
-L36=EEPROM usage: 0 byte(s), 0.0% of EEPROM
-L37=Program size: 375 words (750 bytes), 36.6% of FLASH
-L38=33 words (66 bytes), 8.1% reduced by Code Compression
+L36=EEPROM usage: 0 byte(s), 0,0% of EEPROM
+L37=Program size: 375 words (750 bytes), 36,6% of FLASH
+L38=33 words (66 bytes), 8,1% reduced by Code Compression
 [BuildInfoAssembler]
 Lines=12
 L1=AVRASM: AVR macro assembler 2.1.30 (build 592 Nov  7 2008 12:38:17)
 L2=Copyright (C) 1995-2008 ATMEL Corporation
 L3=
-L4=D:\My Data\TanPhat\3-phase-curent-protect\Debug\List\3 phase current protect.asm(1879): No EEPROM data, deleting D:\My Data\TanPhat\3-phase-curent-protect\Debug\Exe\3 phase current protect.eep
+L4=D:\Mydata\Work\Tan Phat\Bien doi nguon 3 phase\Firmware_2\3-phase-curent-protect\Debug\List\3 phase current protect.asm(1878): No EEPROM data, deleting D:\Mydata\Work\Tan Phat\Bien doi nguon 3 phase\Firmware_2\3-phase-curent-protect\Debug\Exe\3 phase current protect.eep
 L5=
 L6=ATtiny24 memory use summary [bytes]:
 L7=Segment   Begin    End      Code   Data   Used    Size   Use%
@@ -532,15 +532,21 @@ HIDKeyboard=0
 HIDMouse=0
 HIDJoystick=0
 [HeadersList]
-Files=2
+Files=3
 F1=D:\Mydata\Work\Tan Phat\Bien doi nguon 3 phase\Firmware\3 Phase current protect\main.c
 F2=D:\My Data\TanPhat\3-phase-curent-protect\main.c
+F3=D:\Mydata\Work\Tan Phat\Bien doi nguon 3 phase\Firmware_2\3-phase-curent-protect\main.c
 [Header1]
 Files=3
 F1=C:\cvavr\inc\tiny24.h
 F2=C:\cvavr\inc\tiny24_bits.h
 F3=C:\cvavr\inc\delay.h
 [Header2]
+Files=3
+F1=C:\cvavr\inc\tiny24.h
+F2=C:\cvavr\inc\tiny24_bits.h
+F3=C:\cvavr\inc\delay.h
+[Header3]
 Files=3
 F1=C:\cvavr\inc\tiny24.h
 F2=C:\cvavr\inc\tiny24_bits.h

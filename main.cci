@@ -1,4 +1,4 @@
-VERSION:3 SOURCE_TIMESTAMP:4D65B295
+VERSION:3 SOURCE_TIMESTAMP:4D6659B5
 NODE:I LEVEL:0 LINE:25 "C:\cvavr\inc\tiny24.h"
 NODE:I LEVEL:0 LINE:27 "C:\cvavr\inc\delay.h"
 NODE:M LEVEL:0 LINE:29 "current_1"
@@ -28,5 +28,5 @@ NODE:F LEVEL:0 LINE:65 "timer1_ovf_isr(void)"
 NODE:M LEVEL:0 LINE:79 "ADC_VREF_TYPE"
 NODE:F LEVEL:0 LINE:82 "read_adc(unsigned char adc_input)"
 NODE:F LEVEL:0 LINE:95 "Current_get_value(void)"
-NODE:F LEVEL:0 LINE:175 "Control(void)"
-NODE:F LEVEL:0 LINE:187 "main(void)"
+NODE:F LEVEL:0 LINE:174 "Protect_control(void)"
+NODE:F LEVEL:0 LINE:186 "main(void)"
