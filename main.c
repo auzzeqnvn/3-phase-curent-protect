@@ -37,40 +37,37 @@ Data Stack size         : 8
 #define	current_2_scale	1
 #define	current_3_scale	1
 #define	current_set_scale	1
+
 //#define	v_num_noise_filter	3
 
-unsigned int	v_current_value = 0;
-unsigned int	v_current_set_value = 0;
+#define	DO_CONTROL_BUZZER	PORTB.2
 
-unsigned int	v_adc_current_1[num_sample];
-unsigned int	v_adc_current_2[num_sample];
-unsigned int	v_adc_current_3[num_sample];
-unsigned int	v_adc_current_set[num_sample];
-unsigned char	v_num_sample_cnt;
+#define	BUZZER_ON	DO_CONTROL_BUZZER = 1
+#define	BUZZER_OFF	DO_CONTROL_BUZZER = 0
 
-bit	f_current_1_hight = 0;
-bit	f_current_2_hight = 0;
-bit	f_current_3_hight = 0;
+#define	Err	0
+#define	Ok	1
+#define	Processing	2
 
-bit	f_adc_get_sample = 0;
+unsigned int	Uint_Current1_adc[num_sample];
+unsigned int	Uint_Current2_adc[num_sample];
+unsigned int	Uint_Current3_adc[num_sample];
+unsigned int	Uint_CurrentSet_adc[num_sample];
+unsigned char	Uchar_Sample_count;
 
-bit	f_timer_overflow = 0;
+bit	Bit_AdcSample_full = 0;
 
-#define	BUZZER_ON	PORTB |= 0x02
-#define	BUZZER_OFF	PORTB &= 0xFD
+bit	Bit_TimerOverflow = 0;
 
-// Declare your global variables here
-
+/*-----------------------------------------------------*/
 // Timer1 overflow interrupt service routine
+// Timer 10ms
 interrupt [TIM1_OVF] void timer1_ovf_isr(void)
 {
 // Reinitialize Timer1 value
-TCNT1H=0xCF2C >> 8;
-TCNT1L=0xCF2C & 0xff;
-f_timer_overflow = 1;
-
-// Place your code here
-
+	TCNT1H=0xCF2C >> 8;
+	TCNT1L=0xCF2C & 0xff;
+	Bit_TimerOverflow = 1;
 }
 
 
@@ -79,102 +76,120 @@ f_timer_overflow = 1;
 #define ADC_VREF_TYPE ((0<<REFS1) | (0<<REFS0))
 
 // Read the AD conversion result
+// ADC 10 bit
 unsigned int read_adc(unsigned char adc_input)
 {
-ADMUX=(adc_input & 0x3f) | ADC_VREF_TYPE;
-// Delay needed for the stabilization of the ADC input voltage
-delay_us(10);
-// Start the AD conversion
-ADCSRA|=(1<<ADSC);
-// Wait for the AD conversion to complete
-while ((ADCSRA & (1<<ADIF))==0);
-ADCSRA|=(1<<ADIF);
-return ADCW;
+	ADMUX=(adc_input & 0x3f) | ADC_VREF_TYPE;
+	// Delay needed for the stabilization of the ADC input voltage
+	delay_us(10);
+	// Start the AD conversion
+	ADCSRA|=(1<<ADSC);
+	// Wait for the AD conversion to complete
+	while ((ADCSRA & (1<<ADIF))==0);
+	ADCSRA|=(1<<ADIF);
+	return ADCW;
 }
 
-void	Current_get_value(void)
+/* 
+*	Doc gia tri ADC cac dong dien theo chu ki cua timer. 
+*	Lay gia tri trung binh cac thong so doc duoc.
+* 	So sanh dong dien tieu thu (1,2,3) voi gia tri cai dat (current_set)
+*	Bat co canh bao khi dong dien tieu thi lon hon cai dat.
+*/
+unsigned char	Current_get_value(void)
 {
-	unsigned char	cnt_loop = 0;
-	
-	v_adc_current_1[v_num_sample_cnt] = read_adc(current_1);
-	v_adc_current_2[v_num_sample_cnt] = read_adc(current_2);
-	v_adc_current_3[v_num_sample_cnt] = read_adc(current_3);
-	v_adc_current_set[v_num_sample_cnt] = read_adc(current_set);  
+	if(Bit_TimerOverflow)
+	{
+		unsigned char	Uchar_loop_cnt = 0;
+		unsigned int	Uint_Current_value = 0;
+		unsigned int	Uint_CurrentSet_value = 0;
+		Bit_TimerOverflow = 0;
+		
+		Uint_Current1_adc[Uchar_Sample_count] = read_adc(current_1);
+		Uint_Current2_adc[Uchar_Sample_count] = read_adc(current_2);
+		Uint_Current3_adc[Uchar_Sample_count] = read_adc(current_3);
+		Uint_CurrentSet_adc[Uchar_Sample_count] = read_adc(current_set); 
 
-	
-	if((v_num_sample_cnt < (num_sample-1)) && (f_adc_get_sample == 0))
-    {         
-        for(cnt_loop = 0; cnt_loop <= v_num_sample_cnt; cnt_loop++)
+		Uchar_Sample_count++;
+		if(Uchar_Sample_count >= num_sample)	
 		{
-			v_current_set_value += v_adc_current_set[cnt_loop];
-		}
-		v_current_set_value /= cnt_loop;
-        
-		for(cnt_loop = 0; cnt_loop <= v_num_sample_cnt; cnt_loop++)
-		{
-			v_current_value += v_adc_current_1[cnt_loop];
-		}
-		v_current_value /= cnt_loop; 
-        if(v_current_value*current_1_scale > v_current_set_value*current_set_scale)	f_current_1_hight = 1;
-		else	f_current_1_hight = 0;
+			Uchar_Sample_count = 0;
+			Bit_AdcSample_full = 1;
+		} 
+
 		
-		for(cnt_loop = 0; cnt_loop <= v_num_sample_cnt; cnt_loop++)
-		{
-			v_current_value += v_adc_current_2[cnt_loop];
+		if(Bit_AdcSample_full == 0)
+		{         
+			for(Uchar_loop_cnt = 0; Uchar_loop_cnt < Uchar_Sample_count; Uchar_loop_cnt++)
+			{
+				Uint_CurrentSet_value += Uint_CurrentSet_adc[Uchar_loop_cnt];
+			}
+			Uint_CurrentSet_value /= Uchar_loop_cnt;
+			
+			for(Uchar_loop_cnt = 0; Uchar_loop_cnt < Uchar_Sample_count; Uchar_loop_cnt++)
+			{
+				Uint_Current_value += Uint_Current1_adc[Uchar_loop_cnt];
+			}
+			Uint_Current_value /= Uchar_loop_cnt; 
+			if(Uint_Current_value*current_1_scale > Uint_CurrentSet_value*current_set_scale)	return Err;
+			
+			for(Uchar_loop_cnt = 0; Uchar_loop_cnt < Uchar_Sample_count; Uchar_loop_cnt++)
+			{
+				Uint_Current_value += Uint_Current2_adc[Uchar_loop_cnt];
+			}
+			Uint_Current_value /= Uchar_loop_cnt; 
+			if(Uint_Current_value*current_2_scale > Uint_CurrentSet_value*current_set_scale)	return Err;
+			
+			for(Uchar_loop_cnt = 0; Uchar_loop_cnt <= Uchar_Sample_count; Uchar_loop_cnt++)
+			{
+				Uint_Current_value += Uint_Current3_adc[Uchar_loop_cnt];
+			}
+			Uint_Current_value /= Uchar_loop_cnt; 
+			if(Uint_Current_value*current_3_scale > Uint_CurrentSet_value*current_set_scale)	return Err;
 		}
-		v_current_value /= cnt_loop; 
-        if(v_current_value*current_2_scale > v_current_set_value*current_set_scale)	f_current_2_hight = 1;
-		else	f_current_2_hight = 0;
-		
-		for(cnt_loop = 0; cnt_loop <= v_num_sample_cnt; cnt_loop++)
+		else
 		{
-			v_current_value += v_adc_current_3[cnt_loop];
+			for(Uchar_loop_cnt = 0; Uchar_loop_cnt < num_sample; Uchar_loop_cnt++)
+			{
+				Uint_CurrentSet_value += Uint_CurrentSet_adc[Uchar_loop_cnt];
+			}
+			Uint_CurrentSet_value /= num_sample;
+			
+			for(Uchar_loop_cnt = 0; Uchar_loop_cnt < num_sample; Uchar_loop_cnt++)
+			{
+				Uint_Current_value += Uint_Current1_adc[Uchar_loop_cnt];
+			}
+			Uint_Current_value /=num_sample; 
+			if(Uint_Current_value*current_1_scale > Uint_CurrentSet_value*current_set_scale)	return Err;
+			
+			for(Uchar_loop_cnt = 0; Uchar_loop_cnt < num_sample; Uchar_loop_cnt++)
+			{
+				Uint_Current_value += Uint_Current2_adc[Uchar_loop_cnt];
+			}
+			Uint_Current_value /=num_sample; 
+			if(Uint_Current_value*current_2_scale > Uint_CurrentSet_value*current_set_scale)	return Err;
+			
+			for(Uchar_loop_cnt = 0; Uchar_loop_cnt < num_sample; Uchar_loop_cnt++)
+			{
+				Uint_Current_value += Uint_Current3_adc[Uchar_loop_cnt];
+			}
+			Uint_Current_value /= num_sample; 
+			if(Uint_Current_value*current_3_scale > Uint_CurrentSet_value*current_set_scale)	return Err;	
 		}
-		v_current_value /= cnt_loop; 
-        if(v_current_value*current_3_scale > v_current_set_value*current_set_scale)	f_current_3_hight = 1;
-		else	f_current_3_hight = 0;
-    }
-    else
-    {
-		f_adc_get_sample = 1;		
-		for(cnt_loop = 0; cnt_loop < num_sample; cnt_loop++)
-		{
-			v_current_set_value += v_adc_current_set[cnt_loop];
-		}
-		v_current_set_value /= num_sample;
-		
-		for(cnt_loop = 0; cnt_loop < num_sample; cnt_loop++)
-		{
-			v_current_value += v_adc_current_1[cnt_loop];
-		}
-		v_current_value /=num_sample; 
-        if(v_current_value*current_1_scale > v_current_set_value*current_set_scale)	f_current_1_hight = 1;
-		else	f_current_1_hight = 0;
-		
-		for(cnt_loop = 0; cnt_loop < num_sample; cnt_loop++)
-		{
-			v_current_value += v_adc_current_2[cnt_loop];
-		}
-		v_current_value /=num_sample; 
-        if(v_current_value*current_2_scale > v_current_set_value*current_set_scale)	f_current_2_hight = 1;
-		else	f_current_2_hight = 0;
-		
-		for(cnt_loop = 0; cnt_loop < num_sample; cnt_loop++)
-		{
-			v_current_value += v_adc_current_3[cnt_loop];
-		}
-		v_current_value /= num_sample; 
-        if(v_current_value*current_3_scale > v_current_set_value*current_set_scale)	f_current_3_hight = 1;
-		else	f_current_3_hight = 0;		
-    }
-	
-    v_num_sample_cnt++;
-	if(v_num_sample_cnt >= num_sample)	v_num_sample_cnt = 0;
+		return Ok;
+	}
+	return Processing;
 }
 
+
+/*
+*	Dieu khien cac tin hieu canh bao dua vao trang thai cac co canh bao 
+*/
 void	Protect_control(void)
 {
-	if(f_current_1_hight || f_current_2_hight || f_current_3_hight)
+	unsigned char	Uchar_respone = Processing;
+	Uchar_respone = Current_get_value();
+	if(Uchar_respone == Err)
 	{
 		BUZZER_ON;
 	}
@@ -195,37 +210,6 @@ CLKPR=(0<<CLKPCE) | (0<<CLKPS3) | (0<<CLKPS2) | (0<<CLKPS1) | (0<<CLKPS0);
 #ifdef _OPTIMIZE_SIZE_
 #pragma optsize+
 #endif
-
-//// Reset Source checking
-//if (MCUSR & (1<<PORF))
-//   {
-//   // Power-on Reset
-//   MCUSR=0;
-//   // Place your code here
-//
-//   }
-//else if (MCUSR & (1<<EXTRF))
-//   {
-//   // External Reset
-//   MCUSR=0;
-//   // Place your code here
-//
-//   }
-//else if (MCUSR & (1<<BORF))
-//   {
-//   // Brown-Out Reset
-//   MCUSR=0;
-//   // Place your code here
-//
-//   }
-//else
-//   {
-//   // Watchdog Reset
-//   MCUSR=0;
-//   // Place your code here
-//
-//   }
-
 // Input/Output Ports initialization
 // Port A initialization
 // Function: Bit7=In Bit6=In Bit5=In Bit4=In Bit3=In Bit2=In Bit1=In Bit0=In 
@@ -333,13 +317,6 @@ WDTCSR=(0<<WDIF) | (0<<WDIE) | (0<<WDP3) | (0<<WDCE) | (1<<WDE) | (0<<WDP2) | (0
 
 	while (1)
 	{
-		// Place your code here 
-		if(f_timer_overflow)
-		{
-			Current_get_value();
-			f_timer_overflow = 0;
-		}
 		Protect_control();
-		//Test
 	}
 }

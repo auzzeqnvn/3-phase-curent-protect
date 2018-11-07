@@ -1,10 +1,10 @@
 RAM Allocation [bytes]
 Variable                                                                          Address   Size
 ------------------------------------------------------------------------------------------------
-v_adc_current_1                                                                   0x0068      20
-v_adc_current_2                                                                   0x007C      20
-v_adc_current_3                                                                   0x0090      20
-v_adc_current_set                                                                 0x00A4      20
+Uint_Current1_adc                                                                 0x0068      20
+Uint_Current2_adc                                                                 0x007C      20
+Uint_Current3_adc                                                                 0x0090      20
+Uint_CurrentSet_adc                                                               0x00A4      20
 
 EEPROM Allocation [bytes]
 Variable                                                                          Address   Size
@@ -13,20 +13,15 @@ Variable                                                                        
 Register Allocation
 Variable                                                                          Register  Size
 ------------------------------------------------------------------------------------------------
-v_current_value                                                                   R2,R3        2
-v_current_set_value                                                               R4,R5        2
-v_num_sample_cnt                                                                  R7           1
-f_current_1_hight                                                                 GPIOR0.0  1bit
-f_current_2_hight                                                                 GPIOR0.1  1bit
-f_current_3_hight                                                                 GPIOR0.2  1bit
-f_adc_get_sample                                                                  GPIOR0.3  1bit
-f_timer_overflow                                                                  GPIOR0.4  1bit
+Uchar_Sample_count                                                                R3           1
+Bit_AdcSample_full                                                                GPIOR0.0  1bit
+Bit_TimerOverflow                                                                 GPIOR0.1  1bit
 
 FLASH Allocation [words]
 Function                                                                          Address   Size
 ------------------------------------------------------------------------------------------------
-timer1_ovf_isr                                                                    0x0003F      5
-read_adc                                                                          0x00044     15
-Current_get_value                                                                 0x00053    141
-Protect_control                                                                   0x000E0     10
-main                                                                              0x000EA     57
+timer1_ovf_isr                                                                    0x00027      5
+read_adc                                                                          0x0002C     15
+Current_get_value                                                                 0x0003B    143
+Protect_control                                                                   0x000CA     11
+main                                                                              0x000D5     53
