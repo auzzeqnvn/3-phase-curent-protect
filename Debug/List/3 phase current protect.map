@@ -22,6 +22,6 @@ Function                                                                        
 ------------------------------------------------------------------------------------------------
 timer1_ovf_isr                                                                    0x00027      5
 read_adc                                                                          0x0002C     15
-Current_get_value                                                                 0x0003B    143
-Protect_control                                                                   0x000CA     11
-main                                                                              0x000D5     53
+Current_get_value                                                                 0x0003B    165
+Protect_control                                                                   0x000E0     15
+main                                                                              0x000EF     49
