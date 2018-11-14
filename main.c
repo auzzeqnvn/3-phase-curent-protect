@@ -26,14 +26,14 @@ Data Stack size         : 8
 
 #include <delay.h>
 
-#define	current_1	1
-#define	current_2	2
-#define	current_3	3
-#define	current_set	7
+#define	ADC_current_1	1
+#define	ADC_current_2	2
+#define	ADC_current_3	3
+#define	ADC_current_set	7
 
 #define	num_sample	10
 
-#define	current_scale	10
+#define	current_scale	6
 
 #define	CURRENT_SET_MAX	16
 #define	CURRENT_SET_MIN	8
@@ -101,9 +101,10 @@ unsigned int read_adc(unsigned char adc_input)
 /* 
 *	Doc gia tri ADC cac dong dien theo chu ki cua timer. 
 *	Lay gia tri trung binh cac thong so doc duoc.
+*	nhan 10 gia tri doc duoc de tang do phan giai so sanh
 * 	So sanh dong dien tieu thu (1,2,3) voi gia tri cai dat (current_set)
-*	Bat co canh bao khi dong dien tieu thi lon hon cai dat.
-*   nhan 10 gia tri doc duoc de tang do phan giai so sanh
+*	Tra ve OK khi dong tieu thu nho hon dong cai dat
+*	Tra ve ERR khi dong tieu thu lon hon dong cai dat
 */
 unsigned char	Current_get_value(void)
 {
@@ -115,10 +116,10 @@ unsigned char	Current_get_value(void)
         
 		Bit_TimerOverflow = 0;
 		
-		Uint_Current1_adc[Uchar_Sample_count] = read_adc(current_1);
-		Uint_Current2_adc[Uchar_Sample_count] = read_adc(current_2);
-		Uint_Current3_adc[Uchar_Sample_count] = read_adc(current_3);
-		Uint_CurrentSet_adc[Uchar_Sample_count] = read_adc(current_set); 
+		Uint_Current1_adc[Uchar_Sample_count] = read_adc(ADC_current_1);
+		Uint_Current2_adc[Uchar_Sample_count] = read_adc(ADC_current_2);
+		Uint_Current3_adc[Uchar_Sample_count] = read_adc(ADC_current_3);
+		Uint_CurrentSet_adc[Uchar_Sample_count] = read_adc(ADC_current_set); 
 
 		Uchar_Sample_count++;
 		if(Uchar_Sample_count >= num_sample)	
@@ -127,18 +128,17 @@ unsigned char	Current_get_value(void)
 			Bit_AdcSample_full = 1;
 		} 
 
-		
+		/* So mau lay duoc chua dat du num_sample*/
 		if(Bit_AdcSample_full == 0)
 		{         
-			/* tinh trung binh gia tri dien ap set doc duoc 
-            */
+			/* tinh trung binh gia tri dien ap set doc duoc */
             for(Uchar_loop_cnt = 0; Uchar_loop_cnt < Uchar_Sample_count; Uchar_loop_cnt++)
 			{
 				Uint_CurrentSet_value += Uint_CurrentSet_adc[Uchar_loop_cnt];
 			}
 			Uint_CurrentSet_value /= Uchar_loop_cnt;  
 			if(Uint_CurrentSet_value >= CURRENT_SET_ADC_VALUE_MAX)	Uint_CurrentSet_value = CURRENT_SET_ADC_VALUE_MAX;
-			Uint_CurrentSet_value = (Uint_CurrentSet_value*10/CURRENT_SET_ADC_VALUE_MAX)*(CURRENT_SET_MAX - CURRENT_SET_MIN) + CURRENT_SET_MIN*10;
+			Uint_CurrentSet_value = (unsigned int)((float)(Uint_CurrentSet_value*10/CURRENT_SET_ADC_VALUE_MAX)*(CURRENT_SET_MAX - CURRENT_SET_MIN)) + CURRENT_SET_MIN*10;
                            
            
             /* TInh trung binh gia tri dien ap doc duoc tu L1 */ 
@@ -150,6 +150,7 @@ unsigned char	Current_get_value(void)
 			Uint_Current_value = Uint_Current_value*5*current_scale*10/1024;
 			if(Uint_Current_value > Uint_CurrentSet_value)	return Err;
 			
+			/* TInh trung binh gia tri dien ap doc duoc tu L2 */ 
 			for(Uchar_loop_cnt = 0; Uchar_loop_cnt < Uchar_Sample_count; Uchar_loop_cnt++)
 			{
 				Uint_Current_value += Uint_Current2_adc[Uchar_loop_cnt];
@@ -158,6 +159,7 @@ unsigned char	Current_get_value(void)
 			Uint_Current_value = Uint_Current_value*5*current_scale*10/1024;
 			if(Uint_Current_value > Uint_CurrentSet_value)	return Err;
 			
+			/* TInh trung binh gia tri dien ap doc duoc tu L3 */ 
 			for(Uchar_loop_cnt = 0; Uchar_loop_cnt <= Uchar_Sample_count; Uchar_loop_cnt++)
 			{
 				Uint_Current_value += Uint_Current3_adc[Uchar_loop_cnt];
@@ -166,15 +168,15 @@ unsigned char	Current_get_value(void)
 			Uint_Current_value = Uint_Current_value*5*current_scale*10/1024;
 			if(Uint_Current_value > Uint_CurrentSet_value)	return Err;
         }
-		else
+		else /* So mau da duoc lay du num_sample*/
 		{
 			for(Uchar_loop_cnt = 0; Uchar_loop_cnt < num_sample; Uchar_loop_cnt++)
 			{
 				Uint_CurrentSet_value += Uint_CurrentSet_adc[Uchar_loop_cnt];
 			}
 			Uint_CurrentSet_value /= num_sample;
-			if(Uint_CurrentSet_value >= 840)	Uint_CurrentSet_value = 840;
-			Uint_CurrentSet_value = (Uint_CurrentSet_value*10/840)*(CURRENT_SET_MAX - CURRENT_SET_MIN) + CURRENT_SET_MIN*10;
+			if(Uint_CurrentSet_value >= CURRENT_SET_ADC_VALUE_MAX)	Uint_CurrentSet_value = CURRENT_SET_ADC_VALUE_MAX;
+			Uint_CurrentSet_value = (unsigned int)((float)(Uint_CurrentSet_value*10/CURRENT_SET_ADC_VALUE_MAX)*(CURRENT_SET_MAX - CURRENT_SET_MIN)) + CURRENT_SET_MIN*10;
 
 			for(Uchar_loop_cnt = 0; Uchar_loop_cnt < num_sample; Uchar_loop_cnt++)
 			{
@@ -191,6 +193,7 @@ unsigned char	Current_get_value(void)
 			Uint_Current_value /=num_sample; 
 			Uint_Current_value = Uint_Current_value*5*current_scale*10/1024;
 			if(Uint_Current_value > Uint_CurrentSet_value)	return Err;
+			// if(Uint_Current_value > 40)	return Err;
 			
 			for(Uchar_loop_cnt = 0; Uchar_loop_cnt < num_sample; Uchar_loop_cnt++)
 			{
@@ -208,6 +211,7 @@ unsigned char	Current_get_value(void)
 
 /*
 *	Dieu khien cac tin hieu canh bao dua vao trang thai cac co canh bao 
+*	
 */
 void	Protect_control(void)
 {
@@ -342,19 +346,6 @@ DIDR0=(0<<ADC1D) | (0<<ADC2D);
 // ADC Voltage Reference: AVCC pin
 // ADC Bipolar Input Mode: Off
 // ADC Auto Trigger Source: ADC Stopped
-// Digital input buffers on ADC0: On, ADC1: Off, ADC2: Off, ADC3: Off
-// ADC4: On, ADC5: On, ADC6: On, ADC7: Off
-DIDR0=(1<<ADC7D) | (0<<ADC6D) | (0<<ADC5D) | (0<<ADC4D) | (1<<ADC3D) | (1<<ADC2D) | (1<<ADC1D) | (0<<ADC0D);
-ADMUX=ADC_VREF_TYPE;
-ADCSRA=(1<<ADEN) | (0<<ADSC) | (0<<ADATE) | (0<<ADIF) | (0<<ADIE) | (0<<ADPS2) | (1<<ADPS1) | (1<<ADPS0);
-ADCSRB=(0<<BIN) | (0<<ADLAR) | (0<<ADTS2) | (0<<ADTS1) | (0<<ADTS0);
-
-
-// ADC initialization
-// ADC Clock frequency: 1000.000 kHz
-// ADC Voltage Reference: AVCC pin
-// ADC Bipolar Input Mode: Off
-// ADC Auto Trigger Source: ADC Stopped
 // Digital input buffers on ADC0: Off, ADC1: On, ADC2: On, ADC3: On
 // ADC4: Off, ADC5: Off, ADC6: Off, ADC7: On
 DIDR0=(0<<ADC7D) | (1<<ADC6D) | (1<<ADC5D) | (1<<ADC4D) | (0<<ADC3D) | (0<<ADC2D) | (0<<ADC1D) | (1<<ADC0D);
@@ -375,6 +366,14 @@ ADCSRB=(0<<BIN) | (0<<ADLAR) | (0<<ADTS2) | (0<<ADTS1) | (0<<ADTS0);
 
 // Global enable interrupts
 #asm("sei")    
+BUZZER_ON;
+delay_ms(100);
+BUZZER_OFF;
+delay_ms(100);
+BUZZER_ON;
+delay_ms(100);
+BUZZER_OFF;
+delay_ms(100);
 	while (1)
 	{
 		Protect_control();  

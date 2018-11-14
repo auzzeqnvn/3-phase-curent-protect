@@ -127,8 +127,8 @@ WatchAVR8LAutoVariables=0
 UseEEPROMLocation0=1
 RebuildAll=0
 LinkageInformationPresent=1
-COFFileTimeStamp=1298836064
-Build=57
+COFFileTimeStamp=1299073080
+Build=73
 [DefinedSymbolsDebug]
 Count=0
 [Compiler]
@@ -230,7 +230,7 @@ UseEEPROMLocation0=1
 RebuildAll=1
 LinkageInformationPresent=0
 COFFileTimeStamp=-1
-Build=57
+Build=73
 IncludePath0=
 IncludePath1=
 IncludePath2=
@@ -457,11 +457,11 @@ F1=main.c
 F2=C:\cvavr\inc\delay.h
 F3=C:\cvavr\inc\tiny24_bits.h
 [Bookmarks1]
-TimeStamp=1298836059
-Row=0
-Column=0
+TimeStamp=1299071427
+Row=349
+Column=72
 ScrollPosX=0
-ScrollPosY=0
+ScrollPosY=325
 BK0=-1
 BK1=-1
 BK2=-1
@@ -475,7 +475,7 @@ BK9=-1
 [BuildInfoCompiler]
 L1=Build configuration: Debug
 L2=Chip: ATtiny24A
-L3=Clock frequency: 8.000000 MHz
+L3=Clock frequency: 8,000000 MHz
 L4=Memory model: Tiny
 L5=Optimize for: Size
 L6=(s)printf features: int
@@ -488,8 +488,8 @@ L12=Enhanced function parameters passing: Yes
 L13=Automatic register allocation: Yes
 L14=Smart register allocation: Yes
 L15=
-L16=Build: 56
-L17=971 line(s) compiled
+L16=Build: 73
+L17=1000 line(s) compiled
 L18=No errors
 L19=No warnings
 L20=
@@ -509,20 +509,20 @@ L33=
 L34=Heap size: 0 byte(s)
 L35=
 Lines=38
-L36=EEPROM usage: 0 byte(s), 0.0% of EEPROM
-L37=Program size: 468 words (936 bytes), 45.7% of FLASH
-L38=187 words (374 bytes), 28.5% reduced by Code Compression
+L36=EEPROM usage: 0 byte(s), 0,0% of EEPROM
+L37=Program size: 699 words (1398 bytes), 68,3% of FLASH
+L38=205 words (410 bytes), 22,7% reduced by Code Compression
 [BuildInfoAssembler]
 Lines=12
 L1=AVRASM: AVR macro assembler 2.1.30 (build 592 Nov  7 2008 12:38:17)
 L2=Copyright (C) 1995-2008 ATMEL Corporation
 L3=
-L4=D:\My Data\TanPhat\3-phase-curent-protect\Debug\List\3 phase current protect.asm(2023): No EEPROM data, deleting D:\My Data\TanPhat\3-phase-curent-protect\Debug\Exe\3 phase current protect.eep
+L4=D:\Mydata\Work\Tan Phat\Bien doi nguon 3 phase\Firmware_2\3-phase-curent-protect\Debug\List\3 phase current protect.asm(2333): No EEPROM data, deleting D:\Mydata\Work\Tan Phat\Bien doi nguon 3 phase\Firmware_2\3-phase-curent-protect\Debug\Exe\3 phase current protect.eep
 L5=
 L6=ATtiny24A memory use summary [bytes]:
 L7=Segment   Begin    End      Code   Data   Used    Size   Use%
 L8=---------------------------------------------------------------
-L9=[.cseg] 0x000000 0x0003a8    936      0    936    2048  45.7%
+L9=[.cseg] 0x000000 0x000576   1398      0   1398    2048  68.3%
 L10=[.dseg] 0x000060 0x0000b8      0     80     80     128  62.5%
 L11=[.eseg] 0x000000 0x000000      0      0      0     128   0.0%
 L12=
@@ -570,8 +570,9 @@ BK9=-1
 [FoldedCode3]
 Blocks=0
 [HeadersList]
-Files=1
+Files=2
 F1=D:\My Data\TanPhat\3-phase-curent-protect\main.c
+F2=D:\Mydata\Work\Tan Phat\Bien doi nguon 3 phase\Firmware_2\3-phase-curent-protect\main.c
 [Header1]
 Files=3
 F1=C:\cvavr\inc\tiny24.h
@@ -579,3 +580,8 @@ F2=C:\cvavr\inc\tiny24_bits.h
 F3=C:\cvavr\inc\delay.h
 [FoldedCode1]
 Blocks=0
+[Header2]
+Files=3
+F1=C:\cvavr\inc\tiny24.h
+F2=C:\cvavr\inc\tiny24_bits.h
+F3=C:\cvavr\inc\delay.h
