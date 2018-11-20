@@ -26,20 +26,23 @@ Data Stack size         : 8
 
 #include <delay.h>
 
-#define	ADC_current_1	1
-#define	ADC_current_2	2
-#define	ADC_current_3	3
+#define	ADC_current_L1	1
+#define	ADC_current_L2	2
+#define	ADC_current_L3	3
 #define	ADC_current_set	7
 
 #define	num_sample	10
 
+/* He so nhan gia tri ADC doc duoc tu L1, L2, L3 */
 #define	current_scale	6
 
+/* Gia tri dong dien cai dat */
 #define	CURRENT_SET_MAX	16
 #define	CURRENT_SET_MIN	8
+
+/* Gia tri max co the doc duoc tu VR_set */
 #define CURRENT_SET_ADC_VALUE_MAX     840
 
-//#define	v_num_noise_filter	3
 
 #define	DO_CONTROL_BUZZER	PORTB.0
 #define	DO_CONTROL_RELAY	PORTB.1
@@ -55,10 +58,10 @@ Data Stack size         : 8
 #define	Ok	1
 #define	Processing	2
 
-unsigned int	Uint_Current1_adc[num_sample];
-unsigned int	Uint_Current2_adc[num_sample];
-unsigned int	Uint_Current3_adc[num_sample];
-unsigned int	Uint_CurrentSet_adc[num_sample];
+unsigned int	AI10_Current_L1[num_sample];
+unsigned int	AI10_Current_L2[num_sample];
+unsigned int	AI10_Current_L3[num_sample];
+unsigned int	AI10_SetCurrent_VR1[num_sample];
 unsigned char	Uchar_Sample_count;
 
 bit	Bit_AdcSample_full = 0;
@@ -73,8 +76,6 @@ interrupt [TIM1_OVF] void timer1_ovf_isr(void)
 // Reinitialize Timer1 value
 	TCNT1H=0xCF2C >> 8;
 	TCNT1L=0xCF2C & 0xff;
-	// TCNT1H=0x85EE >> 8;
-	// TCNT1L=0x85EE & 0xff;
 	Bit_TimerOverflow = 1;
 }
 
@@ -99,14 +100,14 @@ unsigned int read_adc(unsigned char adc_input)
 }
 
 /* 
-*	Doc gia tri ADC cac dong dien theo chu ki cua timer. 
-*	Lay gia tri trung binh cac thong so doc duoc.
-*	nhan 10 gia tri doc duoc de tang do phan giai so sanh
+*	Doc gia tri ADC cac dong dien theo chu ki cua timer (10ms/lan)
+*	Lay gia tri trung binh cac gai tri doc duoc de giam nhieu.
+*	nhan 10 gia tri doc duoc de tang do phan giai so sanh 0.1A
 * 	So sanh dong dien tieu thu (1,2,3) voi gia tri cai dat (current_set)
 *	Tra ve OK khi dong tieu thu nho hon dong cai dat
 *	Tra ve ERR khi dong tieu thu lon hon dong cai dat
 */
-unsigned char	Current_get_value(void)
+unsigned char	Read_value_current(void)
 {
 	if(Bit_TimerOverflow)
 	{
@@ -116,10 +117,10 @@ unsigned char	Current_get_value(void)
         
 		Bit_TimerOverflow = 0;
 		
-		Uint_Current1_adc[Uchar_Sample_count] = read_adc(ADC_current_1);
-		Uint_Current2_adc[Uchar_Sample_count] = read_adc(ADC_current_2);
-		Uint_Current3_adc[Uchar_Sample_count] = read_adc(ADC_current_3);
-		Uint_CurrentSet_adc[Uchar_Sample_count] = read_adc(ADC_current_set); 
+		AI10_Current_L1[Uchar_Sample_count] = read_adc(ADC_current_L1);
+		AI10_Current_L2[Uchar_Sample_count] = read_adc(ADC_current_L2);
+		AI10_Current_L3[Uchar_Sample_count] = read_adc(ADC_current_L3);
+		AI10_SetCurrent_VR1[Uchar_Sample_count] = read_adc(ADC_current_set); 
 
 		Uchar_Sample_count++;
 		if(Uchar_Sample_count >= num_sample)	
@@ -128,13 +129,13 @@ unsigned char	Current_get_value(void)
 			Bit_AdcSample_full = 1;
 		} 
 
-		/* So mau lay duoc chua dat du num_sample*/
+		/* So mau lay duoc chua dat du num_sample (10) */
 		if(Bit_AdcSample_full == 0)
 		{         
 			/* tinh trung binh gia tri dien ap set doc duoc */
             for(Uchar_loop_cnt = 0; Uchar_loop_cnt < Uchar_Sample_count; Uchar_loop_cnt++)
 			{
-				Uint_CurrentSet_value += Uint_CurrentSet_adc[Uchar_loop_cnt];
+				Uint_CurrentSet_value += AI10_SetCurrent_VR1[Uchar_loop_cnt];
 			}
 			Uint_CurrentSet_value /= Uchar_loop_cnt;  
 			if(Uint_CurrentSet_value >= CURRENT_SET_ADC_VALUE_MAX)	Uint_CurrentSet_value = CURRENT_SET_ADC_VALUE_MAX;
@@ -144,7 +145,7 @@ unsigned char	Current_get_value(void)
             /* TInh trung binh gia tri dien ap doc duoc tu L1 */ 
 			for(Uchar_loop_cnt = 0; Uchar_loop_cnt < Uchar_Sample_count; Uchar_loop_cnt++)
 			{
-				Uint_Current_value += Uint_Current1_adc[Uchar_loop_cnt];
+				Uint_Current_value += AI10_Current_L1[Uchar_loop_cnt];
 			}
 			Uint_Current_value /= Uchar_loop_cnt; 
 			Uint_Current_value = Uint_Current_value*5*current_scale*10/1024;
@@ -153,7 +154,7 @@ unsigned char	Current_get_value(void)
 			/* TInh trung binh gia tri dien ap doc duoc tu L2 */ 
 			for(Uchar_loop_cnt = 0; Uchar_loop_cnt < Uchar_Sample_count; Uchar_loop_cnt++)
 			{
-				Uint_Current_value += Uint_Current2_adc[Uchar_loop_cnt];
+				Uint_Current_value += AI10_Current_L2[Uchar_loop_cnt];
 			}
 			Uint_Current_value /= Uchar_loop_cnt; 
 			Uint_Current_value = Uint_Current_value*5*current_scale*10/1024;
@@ -162,7 +163,7 @@ unsigned char	Current_get_value(void)
 			/* TInh trung binh gia tri dien ap doc duoc tu L3 */ 
 			for(Uchar_loop_cnt = 0; Uchar_loop_cnt <= Uchar_Sample_count; Uchar_loop_cnt++)
 			{
-				Uint_Current_value += Uint_Current3_adc[Uchar_loop_cnt];
+				Uint_Current_value += AI10_Current_L3[Uchar_loop_cnt];
 			}
 			Uint_Current_value /= Uchar_loop_cnt; 
 			Uint_Current_value = Uint_Current_value*5*current_scale*10/1024;
@@ -172,7 +173,7 @@ unsigned char	Current_get_value(void)
 		{
 			for(Uchar_loop_cnt = 0; Uchar_loop_cnt < num_sample; Uchar_loop_cnt++)
 			{
-				Uint_CurrentSet_value += Uint_CurrentSet_adc[Uchar_loop_cnt];
+				Uint_CurrentSet_value += AI10_SetCurrent_VR1[Uchar_loop_cnt];
 			}
 			Uint_CurrentSet_value /= num_sample;
 			if(Uint_CurrentSet_value >= CURRENT_SET_ADC_VALUE_MAX)	Uint_CurrentSet_value = CURRENT_SET_ADC_VALUE_MAX;
@@ -180,7 +181,7 @@ unsigned char	Current_get_value(void)
 
 			for(Uchar_loop_cnt = 0; Uchar_loop_cnt < num_sample; Uchar_loop_cnt++)
 			{
-				Uint_Current_value += Uint_Current1_adc[Uchar_loop_cnt];
+				Uint_Current_value += AI10_Current_L1[Uchar_loop_cnt];
 			}
 			Uint_Current_value /=num_sample; 
 			Uint_Current_value = Uint_Current_value*5*current_scale*10/1024;
@@ -188,16 +189,15 @@ unsigned char	Current_get_value(void)
 			
 			for(Uchar_loop_cnt = 0; Uchar_loop_cnt < num_sample; Uchar_loop_cnt++)
 			{
-				Uint_Current_value += Uint_Current2_adc[Uchar_loop_cnt];
+				Uint_Current_value += AI10_Current_L2[Uchar_loop_cnt];
 			}
 			Uint_Current_value /=num_sample; 
 			Uint_Current_value = Uint_Current_value*5*current_scale*10/1024;
 			if(Uint_Current_value > Uint_CurrentSet_value)	return Err;
-			// if(Uint_Current_value > 40)	return Err;
 			
 			for(Uchar_loop_cnt = 0; Uchar_loop_cnt < num_sample; Uchar_loop_cnt++)
 			{
-				Uint_Current_value += Uint_Current3_adc[Uchar_loop_cnt];
+				Uint_Current_value += AI10_Current_L3[Uchar_loop_cnt];
 			}
 			Uint_Current_value /= num_sample; 
 			Uint_Current_value = Uint_Current_value*5*current_scale*10/1024;
@@ -210,13 +210,14 @@ unsigned char	Current_get_value(void)
 
 
 /*
-*	Dieu khien cac tin hieu canh bao dua vao trang thai cac co canh bao 
-*	
+*	Dieu khien cac tin hieu canh bao dua vao trang thai tra ve cua ham doc gia tri dong dien
+*	Err : Bat tin hieu canh bao
+*	Ok : Tat tien hieu canh bao
 */
-void	Protect_control(void)
+void	Control_ProtectPower(void)
 {
 	unsigned char	Uchar_respone = Processing;
-	Uchar_respone = Current_get_value();
+	Uchar_respone = Read_value_current();
 	if(Uchar_respone == Err)
 	{
 		BUZZER_ON;
@@ -376,6 +377,6 @@ BUZZER_OFF;
 delay_ms(100);
 	while (1)
 	{
-		Protect_control();  
+		Control_ProtectPower();  
 	}
 }
