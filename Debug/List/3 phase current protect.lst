@@ -1,7 +1,8 @@
 
-AVRASM ver. 2.1.30  D:\Mydata\Work\Tan Phat\Bien doi nguon 3 phase\Firmware_2\3-phase-curent-protect\Debug\List\3 phase current protect.asm Wed Nov 14 09:01:46 2018
+AVRASM ver. 2.1.30  D:\Mydata\Work\Tan Phat\Bien doi nguon 3 phase\Firmware_2\3-phase-curent-protect\Debug\List\3 phase current protect.asm Wed Nov 21 14:01:26 2018
 
-D:\Mydata\Work\Tan Phat\Bien doi nguon 3 phase\Firmware_2\3-phase-curent-protect\Debug\List\3 phase current protect.asm(987): warning: Register r3 already defined by the .DEF directive
+D:\Mydata\Work\Tan Phat\Bien doi nguon 3 phase\Firmware_2\3-phase-curent-protect\Debug\List\3 phase current protect.asm(987): warning: Register r4 already defined by the .DEF directive
+D:\Mydata\Work\Tan Phat\Bien doi nguon 3 phase\Firmware_2\3-phase-curent-protect\Debug\List\3 phase current protect.asm(988): warning: Register r3 already defined by the .DEF directive
                  
                  
                  ;CodeVisionAVR C Compiler V3.12 Advanced
@@ -17,7 +18,7 @@ D:\Mydata\Work\Tan Phat\Bien doi nguon 3 phase\Firmware_2\3-phase-curent-protect
                  ;(s)printf features     : int
                  ;(s)scanf features      : int, width
                  ;External RAM size      : 0
-                 ;Data Stack size        : 8 byte(s)
+                 ;Data Stack size        : 13 byte(s)
                  ;Heap size              : 0 byte(s)
                  ;Promote 'char' to 'int': Yes
                  ;'char' is unsigned     : Yes
@@ -88,7 +89,7 @@ D:\Mydata\Work\Tan Phat\Bien doi nguon 3 phase\Firmware_2\3-phase-curent-protect
                  
                  	.EQU __SRAM_START=0x0060
                  	.EQU __SRAM_END=0x00DF
-                 	.EQU __DSTACK_SIZE=0x0008
+                 	.EQU __DSTACK_SIZE=0x000D
                  	.EQU __HEAP_SIZE=0x0000
                  	.EQU __CLEAR_SRAM_SIZE=__SRAM_END-__SRAM_START+1
                  
@@ -989,7 +990,8 @@ D:\Mydata\Work\Tan Phat\Bien doi nguon 3 phase\Firmware_2\3-phase-curent-protect
                  	.ENDM
                  
                  ;NAME DEFINITIONS FOR GLOBAL VARIABLES ALLOCATED TO REGISTERS
-                 	.DEF _Uchar_Sample_count=R3
+                 	.DEF _Uchar_Sample_count=R4
+                 	.DEF _Uchar_Timer_count=R3
                  
                  ;GPIOR0-GPIOR2 INITIALIZATION VALUES
                  	.EQU __GPIOR0_INIT=0x00
@@ -1003,7 +1005,7 @@ D:\Mydata\Work\Tan Phat\Bien doi nguon 3 phase\Firmware_2\3-phase-curent-protect
                  __START_OF_CODE:
                  
                  ;INTERRUPT VECTORS
-000000 c010      	RJMP __RESET
+000000 c015      	RJMP __RESET
 000001 cffe      	RJMP 0x00
 000002 cffd      	RJMP 0x00
 000003 cffc      	RJMP 0x00
@@ -1011,7 +1013,7 @@ D:\Mydata\Work\Tan Phat\Bien doi nguon 3 phase\Firmware_2\3-phase-curent-protect
 000005 cffa      	RJMP 0x00
 000006 cff9      	RJMP 0x00
 000007 cff8      	RJMP 0x00
-000008 c01e      	RJMP _timer1_ovf_isr
+000008 c023      	RJMP _timer1_ovf_isr
 000009 cff6      	RJMP 0x00
 00000a cff5      	RJMP 0x00
 00000b cff4      	RJMP 0x00
@@ -1021,50 +1023,57 @@ D:\Mydata\Work\Tan Phat\Bien doi nguon 3 phase\Firmware_2\3-phase-curent-protect
 00000f cff0      	RJMP 0x00
 000010 cfef      	RJMP 0x00
                  
+                 _0x18:
+000011 0000
+000012 0000
+000013 0000
+000014 0000      	.DB  0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0
+D:\Mydata\Work\Tan Phat\Bien doi nguon 3 phase\Firmware_2\3-phase-curent-protect\Debug\List\3 phase current protect.asm(1022): warning: .cseg .db misalignment - padding zero byte
+000015 0000      	.DB  0x0
                  __RESET:
-000011 94f8      	CLI
-000012 27ee      	CLR  R30
-000013 bbec      	OUT  EECR,R30
-000014 bfe5      	OUT  MCUCR,R30
+000016 94f8      	CLI
+000017 27ee      	CLR  R30
+000018 bbec      	OUT  EECR,R30
+000019 bfe5      	OUT  MCUCR,R30
                  
                  ;CLEAR R2-R14
-000015 e08d      	LDI  R24,(14-2)+1
-000016 e0a2      	LDI  R26,2
+00001a e08d      	LDI  R24,(14-2)+1
+00001b e0a2      	LDI  R26,2
                  __CLEAR_REG:
-000017 93ed      	ST   X+,R30
-000018 958a      	DEC  R24
-000019 f7e9      	BRNE __CLEAR_REG
-                 
-                 ;CLEAR SRAM
-00001a e880      	LDI  R24,__CLEAR_SRAM_SIZE
-00001b e6a0      	LDI  R26,__SRAM_START
-                 __CLEAR_SRAM:
 00001c 93ed      	ST   X+,R30
 00001d 958a      	DEC  R24
-00001e f7e9      	BRNE __CLEAR_SRAM
+00001e f7e9      	BRNE __CLEAR_REG
+                 
+                 ;CLEAR SRAM
+00001f e880      	LDI  R24,__CLEAR_SRAM_SIZE
+000020 e6a0      	LDI  R26,__SRAM_START
+                 __CLEAR_SRAM:
+000021 93ed      	ST   X+,R30
+000022 958a      	DEC  R24
+000023 f7e9      	BRNE __CLEAR_SRAM
                  
                  ;GPIOR0-GPIOR2 INITIALIZATION
-00001f e0e0      	LDI  R30,__GPIOR0_INIT
-000020 bbe3      	OUT  GPIOR0,R30
+000024 e0e0      	LDI  R30,__GPIOR0_INIT
+000025 bbe3      	OUT  GPIOR0,R30
                  	;__GPIOR1_INIT = __GPIOR0_INIT
-000021 bbe4      	OUT  GPIOR1,R30
+000026 bbe4      	OUT  GPIOR1,R30
                  	;__GPIOR2_INIT = __GPIOR0_INIT
-000022 bbe5      	OUT  GPIOR2,R30
+000027 bbe5      	OUT  GPIOR2,R30
                  
                  ;HARDWARE STACK POINTER INITIALIZATION
-000023 edef      	LDI  R30,LOW(__SRAM_END-__HEAP_SIZE)
-000024 bfed      	OUT  SPL,R30
+000028 edef      	LDI  R30,LOW(__SRAM_END-__HEAP_SIZE)
+000029 bfed      	OUT  SPL,R30
                  
                  ;DATA STACK POINTER INITIALIZATION
-000025 e6c8      	LDI  R28,LOW(__SRAM_START+__DSTACK_SIZE)
+00002a e6cd      	LDI  R28,LOW(__SRAM_START+__DSTACK_SIZE)
                  
-000026 c0c2      	RJMP _main
+00002b c071      	RJMP _main
                  
                  	.ESEG
                  	.ORG 0
                  
                  	.DSEG
-                 	.ORG 0x68
+                 	.ORG 0x6D
                  
                  	.CSEG
                  ;/*******************************************************
@@ -1104,20 +1113,23 @@ D:\Mydata\Work\Tan Phat\Bien doi nguon 3 phase\Firmware_2\3-phase-curent-protect
                  ;
                  ;#include <delay.h>
                  ;
-                 ;#define	ADC_current_1	1
-                 ;#define	ADC_current_2	2
-                 ;#define	ADC_current_3	3
+                 ;#define	ADC_current_L1	1
+                 ;#define	ADC_current_L2	2
+                 ;#define	ADC_current_L3	3
                  ;#define	ADC_current_set	7
                  ;
                  ;#define	num_sample	10
                  ;
+                 ;/* He so nhan gia tri ADC doc duoc tu L1, L2, L3 */
                  ;#define	current_scale	6
                  ;
-                 ;#define	CURRENT_SET_MAX	16
+                 ;/* Gia tri dong dien cai dat */
+                 ;#define	CURRENT_SET_MAX	20
                  ;#define	CURRENT_SET_MIN	8
+                 ;
+                 ;/* Gia tri max co the doc duoc tu VR_set */
                  ;#define CURRENT_SET_ADC_VALUE_MAX     840
                  ;
-                 ;//#define	v_num_noise_filter	3
                  ;
                  ;#define	DO_CONTROL_BUZZER	PORTB.0
                  ;#define	DO_CONTROL_RELAY	PORTB.1
@@ -1133,37 +1145,80 @@ D:\Mydata\Work\Tan Phat\Bien doi nguon 3 phase\Firmware_2\3-phase-curent-protect
                  ;#define	Ok	1
                  ;#define	Processing	2
                  ;
-                 ;unsigned int	Uint_Current1_adc[num_sample];
-                 ;unsigned int	Uint_Current2_adc[num_sample];
-                 ;unsigned int	Uint_Current3_adc[num_sample];
-                 ;unsigned int	Uint_CurrentSet_adc[num_sample];
+                 ;unsigned int	AI10_Current_L1[num_sample];
+                 ;unsigned int	AI10_Current_L2[num_sample];
+                 ;unsigned int	AI10_Current_L3[num_sample];
+                 ;unsigned int	AI10_SetCurrent_VR1[num_sample];
                  ;unsigned char	Uchar_Sample_count;
+                 ;unsigned char	Uchar_Timer_count;
                  ;
                  ;bit	Bit_AdcSample_full = 0;
                  ;
                  ;bit	Bit_TimerOverflow = 0;
                  ;
+                 ;bit Bit_warning = 0;
+                 ;
                  ;/*-----------------------------------------------------*/
                  ;// Timer1 overflow interrupt service routine
                  ;// Timer 10ms
                  ;interrupt [TIM1_OVF] void timer1_ovf_isr(void)
-                 ; 0000 0048 {
+                 ; 0000 004E {
                  
                  	.CSEG
                  _timer1_ovf_isr:
                  ; .FSTART _timer1_ovf_isr
-000027 93ea      	ST   -Y,R30
-                 ; 0000 0049 // Reinitialize Timer1 value
-                 ; 0000 004A 	TCNT1H=0xCF2C >> 8;
-000028 d0f3      	RCALL SUBOPT_0x0
-                 ; 0000 004B 	TCNT1L=0xCF2C & 0xff;
-                 ; 0000 004C 	// TCNT1H=0x85EE >> 8;
-                 ; 0000 004D 	// TCNT1L=0x85EE & 0xff;
-                 ; 0000 004E 	Bit_TimerOverflow = 1;
-000029 9a99      	SBI  0x13,1
-                 ; 0000 004F }
-00002a 91e9      	LD   R30,Y+
-00002b 9518      	RETI
+00002c 93ea      	ST   -Y,R30
+00002d b7ef      	IN   R30,SREG
+00002e 93ea      	ST   -Y,R30
+                 ; 0000 004F // Reinitialize Timer1 value
+                 ; 0000 0050 	TCNT1H=0xCF2C >> 8;
+00002f d09f      	RCALL SUBOPT_0x0
+                 ; 0000 0051 	TCNT1L=0xCF2C & 0xff;
+                 ; 0000 0052 	Bit_TimerOverflow = 1;
+000030 9a99      	SBI  0x13,1
+                 ; 0000 0053 	Uchar_Timer_count++;
+000031 9433      	INC  R3
+                 ; 0000 0054 	if(Uchar_Timer_count>= 10)
+000032 e0ea      	LDI  R30,LOW(10)
+000033 163e      	CP   R3,R30
+000034 f008      	BRLO _0x5
+                 ; 0000 0055 	{
+                 ; 0000 0056 		Uchar_Timer_count = 0;
+000035 2433      	CLR  R3
+                 ; 0000 0057 	}
+                 ; 0000 0058 	if(Bit_warning == 1)
+                 _0x5:
+000036 9b9a      	SBIS 0x13,2
+000037 c008      	RJMP _0x6
+                 ; 0000 0059 	{
+                 ; 0000 005A 		RELAY_ON;
+000038 9ac1      	SBI  0x18,1
+                 ; 0000 005B 		if(Uchar_Timer_count < 5)	BUZZER_ON;
+000039 e0e5      	LDI  R30,LOW(5)
+00003a 163e      	CP   R3,R30
+00003b f410      	BRSH _0x9
+00003c 9ac0      	SBI  0x18,0
+                 ; 0000 005C 		else	BUZZER_OFF;
+00003d c001      	RJMP _0xC
+                 _0x9:
+00003e 98c0      	CBI  0x18,0
+                 ; 0000 005D 	}
+                 _0xC:
+                 ; 0000 005E 	else
+00003f c002      	RJMP _0xF
+                 _0x6:
+                 ; 0000 005F 	{
+                 ; 0000 0060 		BUZZER_OFF;
+000040 98c0      	CBI  0x18,0
+                 ; 0000 0061 		RELAY_OFF;
+000041 98c1      	CBI  0x18,1
+                 ; 0000 0062 	}
+                 _0xF:
+                 ; 0000 0063 }
+000042 91e9      	LD   R30,Y+
+000043 bfef      	OUT  SREG,R30
+000044 91e9      	LD   R30,Y+
+000045 9518      	RETI
                  ; .FEND
                  ;
                  ;
@@ -1174,1180 +1229,765 @@ D:\Mydata\Work\Tan Phat\Bien doi nguon 3 phase\Firmware_2\3-phase-curent-protect
                  ;// Read the AD conversion result
                  ;// ADC 10 bit
                  ;unsigned int read_adc(unsigned char adc_input)
-                 ; 0000 0059 {
+                 ; 0000 006D {
                  _read_adc:
                  ; .FSTART _read_adc
-                 ; 0000 005A 	ADMUX=(adc_input & 0x3f) | ADC_VREF_TYPE;
-00002c 93aa      	ST   -Y,R26
+                 ; 0000 006E 	ADMUX=(adc_input & 0x3f) | ADC_VREF_TYPE;
+000046 93aa      	ST   -Y,R26
                  ;	adc_input -> Y+0
-00002d 81e8      	LD   R30,Y
-00002e 73ef      	ANDI R30,LOW(0x3F)
-00002f b9e7      	OUT  0x7,R30
-                 ; 0000 005B 	// Delay needed for the stabilization of the ADC input voltage
-                 ; 0000 005C 	delay_us(10);
+000047 81e8      	LD   R30,Y
+000048 73ef      	ANDI R30,LOW(0x3F)
+000049 b9e7      	OUT  0x7,R30
+                 ; 0000 006F 	// Delay needed for the stabilization of the ADC input voltage
+                 ; 0000 0070 	delay_us(10);
                 +
-000030 e18b     +LDI R24 , LOW ( 27 )
+00004a e18b     +LDI R24 , LOW ( 27 )
                 +__DELAY_USB_LOOP :
-000031 958a     +DEC R24
-000032 f7f1     +BRNE __DELAY_USB_LOOP
+00004b 958a     +DEC R24
+00004c f7f1     +BRNE __DELAY_USB_LOOP
                  	__DELAY_USB 27
-                 ; 0000 005D 	// Start the AD conversion
-                 ; 0000 005E 	ADCSRA|=(1<<ADSC);
-000033 9a36      	SBI  0x6,6
-                 ; 0000 005F 	// Wait for the AD conversion to complete
-                 ; 0000 0060 	while ((ADCSRA & (1<<ADIF))==0);
-                 _0x5:
-000034 9b34      	SBIS 0x6,4
-000035 cffe      	RJMP _0x5
-                 ; 0000 0061 	ADCSRA|=(1<<ADIF);
-000036 9a34      	SBI  0x6,4
-                 ; 0000 0062 	return ADCW;
-000037 b1e4      	IN   R30,0x4
-000038 b1f5      	IN   R31,0x4+1
-000039 9621      	ADIW R28,1
-00003a 9508      	RET
-                 ; 0000 0063 }
-                 ; .FEND
-                 ;
-                 ;/*
-                 ;*	Doc gia tri ADC cac dong dien theo chu ki cua timer.
-                 ;*	Lay gia tri trung binh cac thong so doc duoc.
-                 ;* 	So sanh dong dien tieu thu (1,2,3) voi gia tri cai dat (current_set)
-                 ;*	Bat co canh bao khi dong dien tieu thi lon hon cai dat.
-                 ;*   nhan 10 gia tri doc duoc de tang do phan giai so sanh
-                 ;*/
-                 ;unsigned char	Current_get_value(void)
-                 ; 0000 006D {
-                 _Current_get_value:
-                 ; .FSTART _Current_get_value
-                 ; 0000 006E 	if(Bit_TimerOverflow)
-00003b 9b99      	SBIS 0x13,1
-00003c c09b      	RJMP _0x8
-                 ; 0000 006F 	{
-                 ; 0000 0070 		unsigned char	Uchar_loop_cnt = 0;
-                 ; 0000 0071 		unsigned int	Uint_Current_value = 0;
-                 ; 0000 0072 		unsigned int	Uint_CurrentSet_value = 0;
-                 ; 0000 0073 
-                 ; 0000 0074 		Bit_TimerOverflow = 0;
-00003d 9725      	SBIW R28,5
-00003e e0e0      	LDI  R30,LOW(0)
-00003f 83e8      	ST   Y,R30
-000040 83e9      	STD  Y+1,R30
-000041 83ea      	STD  Y+2,R30
-000042 83eb      	STD  Y+3,R30
-000043 d0dd      	RCALL SUBOPT_0x1
-                 ;	Uchar_loop_cnt -> Y+4
-                 ;	Uint_Current_value -> Y+2
-                 ;	Uint_CurrentSet_value -> Y+0
-000044 9899      	CBI  0x13,1
-                 ; 0000 0075 
-                 ; 0000 0076 		Uint_Current1_adc[Uchar_Sample_count] = read_adc(ADC_current_1);
-000045 2de3      	MOV  R30,R3
-000046 e6a8      	LDI  R26,LOW(_Uint_Current1_adc)
-000047 d0dc      	RCALL SUBOPT_0x2
-000048 93ef      	PUSH R30
-000049 e0a1      	LDI  R26,LOW(1)
-00004a dfe1      	RCALL _read_adc
-00004b 91af      	POP  R26
-00004c d0da      	RCALL SUBOPT_0x3
-                 ; 0000 0077 		Uint_Current2_adc[Uchar_Sample_count] = read_adc(ADC_current_2);
-00004d e7ac      	LDI  R26,LOW(_Uint_Current2_adc)
-00004e d0d5      	RCALL SUBOPT_0x2
-00004f 93ef      	PUSH R30
-000050 e0a2      	LDI  R26,LOW(2)
-000051 dfda      	RCALL _read_adc
-000052 91af      	POP  R26
-000053 d0d3      	RCALL SUBOPT_0x3
-                 ; 0000 0078 		Uint_Current3_adc[Uchar_Sample_count] = read_adc(ADC_current_3);
-000054 e9a0      	LDI  R26,LOW(_Uint_Current3_adc)
-000055 d0ce      	RCALL SUBOPT_0x2
-000056 93ef      	PUSH R30
-000057 e0a3      	LDI  R26,LOW(3)
-000058 dfd3      	RCALL _read_adc
-000059 91af      	POP  R26
-00005a d0cc      	RCALL SUBOPT_0x3
-                 ; 0000 0079 		Uint_CurrentSet_adc[Uchar_Sample_count] = read_adc(ADC_current_set);
-00005b eaa4      	LDI  R26,LOW(_Uint_CurrentSet_adc)
-00005c d0c7      	RCALL SUBOPT_0x2
-00005d 93ef      	PUSH R30
-00005e e0a7      	LDI  R26,LOW(7)
-00005f dfcc      	RCALL _read_adc
-000060 91af      	POP  R26
-000061 93ed      	ST   X+,R30
-000062 93fc      	ST   X,R31
-                 ; 0000 007A 
-                 ; 0000 007B 		Uchar_Sample_count++;
-000063 9433      	INC  R3
-                 ; 0000 007C 		if(Uchar_Sample_count >= num_sample)
-000064 e0ea      	LDI  R30,LOW(10)
-000065 163e      	CP   R3,R30
-000066 f010      	BRLO _0xB
-                 ; 0000 007D 		{
-                 ; 0000 007E 			Uchar_Sample_count = 0;
-000067 2433      	CLR  R3
-                 ; 0000 007F 			Bit_AdcSample_full = 1;
-000068 9a98      	SBI  0x13,0
-                 ; 0000 0080 		}
-                 ; 0000 0081 
-                 ; 0000 0082 
-                 ; 0000 0083 		if(Bit_AdcSample_full == 0)
-                 _0xB:
-000069 9998      	SBIC 0x13,0
-00006a c03a      	RJMP _0xE
-                 ; 0000 0084 		{
-                 ; 0000 0085 			/* tinh trung binh gia tri dien ap set doc duoc
-                 ; 0000 0086             */
-                 ; 0000 0087             for(Uchar_loop_cnt = 0; Uchar_loop_cnt < Uchar_Sample_count; Uchar_loop_cnt++)
-00006b d0b5      	RCALL SUBOPT_0x1
-                 _0x10:
-00006c 81ac      	LDD  R26,Y+4
-00006d 15a3      	CP   R26,R3
-00006e f418      	BRSH _0x11
-                 ; 0000 0088 			{
-                 ; 0000 0089 				Uint_CurrentSet_value += Uint_CurrentSet_adc[Uchar_loop_cnt];
-00006f d0bb      	RCALL SUBOPT_0x4
-                 ; 0000 008A 			}
-000070 d0c6      	RCALL SUBOPT_0x5
-000071 cffa      	RJMP _0x10
-                 _0x11:
-                 ; 0000 008B 			Uint_CurrentSet_value /= Uchar_loop_cnt;
-000072 d0c8      	RCALL SUBOPT_0x6
-000073 d0ca      	RCALL SUBOPT_0x7
-000074 d0cc      	RCALL SUBOPT_0x8
-                 ; 0000 008C 			if(Uint_CurrentSet_value >= CURRENT_SET_ADC_VALUE_MAX)	Uint_CurrentSet_value = CURRENT_SET_ADC_VALUE_MAX;
-000075 f010      	BRLO _0x12
-000076 d0d2      	RCALL SUBOPT_0x9
-000077 d0d4      	RCALL SUBOPT_0xA
-                 ; 0000 008D 			Uint_CurrentSet_value = (unsigned int)((float)(Uint_CurrentSet_value*10/CURRENT_SET_ADC_VALUE_MAX)*(CURRENT_SET_MAX - ...
-                 _0x12:
-000078 d0d6      	RCALL SUBOPT_0xB
-000079 d0d8      	RCALL SUBOPT_0xC
-00007a d0db      	RCALL SUBOPT_0xD
-                 ; 0000 008E 
-                 ; 0000 008F 
-                 ; 0000 0090             /* TInh trung binh gia tri dien ap doc duoc tu L1 */
-                 ; 0000 0091 			for(Uchar_loop_cnt = 0; Uchar_loop_cnt < Uchar_Sample_count; Uchar_loop_cnt++)
+                 ; 0000 0071 	// Start the AD conversion
+                 ; 0000 0072 	ADCSRA|=(1<<ADSC);
+00004d 9a36      	SBI  0x6,6
+                 ; 0000 0073 	// Wait for the AD conversion to complete
+                 ; 0000 0074 	while ((ADCSRA & (1<<ADIF))==0);
                  _0x14:
-00007b 81ac      	LDD  R26,Y+4
-00007c 15a3      	CP   R26,R3
-00007d f418      	BRSH _0x15
-                 ; 0000 0092 			{
-                 ; 0000 0093 				Uint_Current_value += Uint_Current1_adc[Uchar_loop_cnt];
-00007e d0e9      	RCALL SUBOPT_0xE
-                 ; 0000 0094 			}
-00007f d0b7      	RCALL SUBOPT_0x5
-000080 cffa      	RJMP _0x14
-                 _0x15:
-                 ; 0000 0095 			Uint_Current_value /= Uchar_loop_cnt;
-000081 d0b9      	RCALL SUBOPT_0x6
-000082 d0f1      	RCALL SUBOPT_0xF
-000083 d0f3      	RCALL SUBOPT_0x10
-                 ; 0000 0096 			Uint_Current_value = Uint_Current_value*5*current_scale*10/1024;
-000084 d0fc      	RCALL SUBOPT_0x11
-                 ; 0000 0097 			if(Uint_Current_value > Uint_CurrentSet_value)	return Err;
-000085 f410      	BRSH _0x16
-000086 e0e0      	LDI  R30,LOW(0)
-000087 c04d      	RJMP _0x2000001
-                 ; 0000 0098 
-                 ; 0000 0099 			for(Uchar_loop_cnt = 0; Uchar_loop_cnt < Uchar_Sample_count; Uchar_loop_cnt++)
-                 _0x16:
-000088 d098      	RCALL SUBOPT_0x1
-                 _0x18:
-000089 81ac      	LDD  R26,Y+4
-00008a 15a3      	CP   R26,R3
-00008b f418      	BRSH _0x19
-                 ; 0000 009A 			{
-                 ; 0000 009B 				Uint_Current_value += Uint_Current2_adc[Uchar_loop_cnt];
-00008c d0fe      	RCALL SUBOPT_0x12
-                 ; 0000 009C 			}
-00008d d0a9      	RCALL SUBOPT_0x5
-00008e cffa      	RJMP _0x18
+00004e 9b34      	SBIS 0x6,4
+00004f cffe      	RJMP _0x14
+                 ; 0000 0075 	ADCSRA|=(1<<ADIF);
+000050 9a34      	SBI  0x6,4
+                 ; 0000 0076 	return ADCW;
+000051 b1e4      	IN   R30,0x4
+000052 b1f5      	IN   R31,0x4+1
+000053 9621      	ADIW R28,1
+000054 9508      	RET
+                 ; 0000 0077 }
+                 ; .FEND
+                 ;
+                 ;/*
+                 ;*	Doc gia tri ADC cac dong dien theo chu ki cua timer (10ms/lan)
+                 ;*	Lay gia tri trung binh cac gai tri doc duoc de giam nhieu.
+                 ;*	nhan 10 gia tri doc duoc de tang do phan giai so sanh 0.1A
+                 ;* 	So sanh dong dien tieu thu (1,2,3) voi gia tri cai dat (current_set)
+                 ;*	Tra ve OK khi dong tieu thu nho hon dong cai dat
+                 ;*	Tra ve ERR khi dong tieu thu lon hon dong cai dat
+                 ;*/
+                 ;unsigned char	Read_value_current(void)
+                 ; 0000 0082 {
+                 _Read_value_current:
+                 ; .FSTART _Read_value_current
+                 ; 0000 0083 	if(Bit_TimerOverflow)
+000055 9b99      	SBIS 0x13,1
+000056 c03e      	RJMP _0x17
+                 ; 0000 0084 	{
+                 ; 0000 0085 		unsigned char	Uchar_loop_cnt = 0;
+                 ; 0000 0086 		unsigned long	Uint_Current_value = 0;
+                 ; 0000 0087 		unsigned long	Uint_CurrentSet_value = 0;
+                 ; 0000 0088 
+                 ; 0000 0089 		Uint_CurrentSet_value = read_adc(ADC_current_set);
+000057 9729      	SBIW R28,9
+000058 e089      	LDI  R24,9
+000059 e0a0      	LDI  R26,LOW(0)
+00005a e2e2      	LDI  R30,LOW(_0x18*2)
+00005b e0f0      	LDI  R31,HIGH(_0x18*2)
+00005c d10e      	RCALL __INITLOCB
+                 ;	Uchar_loop_cnt -> Y+8
+                 ;	Uint_Current_value -> Y+4
+                 ;	Uint_CurrentSet_value -> Y+0
+00005d e0a7      	LDI  R26,LOW(7)
+00005e d075      	RCALL SUBOPT_0x1
+00005f d078      	RCALL SUBOPT_0x2
+                 ; 0000 008A 		Uint_CurrentSet_value = ((Uint_CurrentSet_value*10/CURRENT_SET_ADC_VALUE_MAX)*(CURRENT_SET_MAX - CURRENT_SET_MIN)) + C ...
+000060 d079      	RCALL SUBOPT_0x3
+000061 d07a      	RCALL SUBOPT_0x4
+                +
+000062 e4e8     +LDI R30 , LOW ( 0x348 )
+000063 e0f3     +LDI R31 , HIGH ( 0x348 )
+000064 e060     +LDI R22 , BYTE3 ( 0x348 )
+000065 e070     +LDI R23 , BYTE4 ( 0x348 )
+                 	__GETD1N 0x348
+000066 d0d0      	RCALL __DIVD21U
+                +
+000067 e0ac     +LDI R26 , LOW ( 0xC )
+000068 e0b0     +LDI R27 , HIGH ( 0xC )
+000069 e080     +LDI R24 , BYTE3 ( 0xC )
+00006a e090     +LDI R25 , BYTE4 ( 0xC )
+                 	__GETD2N 0xC
+00006b d0ab      	RCALL __MULD12U
+                +
+00006c 5be0     +SUBI R30 , LOW ( - 80 )
+00006d 4fff     +SBCI R31 , HIGH ( - 80 )
+00006e 4f6f     +SBCI R22 , BYTE3 ( - 80 )
+00006f 4f7f     +SBCI R23 , BYTE4 ( - 80 )
+                 	__ADDD1N 80
+000070 d067      	RCALL SUBOPT_0x2
+                 ; 0000 008B 
+                 ; 0000 008C 		Uint_Current_value = read_adc(ADC_current_L1);
+000071 e0a1      	LDI  R26,LOW(1)
+000072 d061      	RCALL SUBOPT_0x1
+000073 d070      	RCALL SUBOPT_0x5
+                 ; 0000 008D 		Uint_Current_value = Uint_Current_value*5*current_scale*10/1024;
+000074 d074      	RCALL SUBOPT_0x6
+000075 d082      	RCALL SUBOPT_0x7
+                 ; 0000 008E 		if(Uint_Current_value > Uint_CurrentSet_value)
+000076 f418      	BRSH _0x19
+                 ; 0000 008F 		{
+                 ; 0000 0090 			Bit_warning = 1;
+000077 9a9a      	SBI  0x13,2
+                 ; 0000 0091 			Uchar_Sample_count = 0;
+000078 2444      	CLR  R4
+                 ; 0000 0092 			//return Err;
+                 ; 0000 0093 		}
+                 ; 0000 0094 		else
+000079 c019      	RJMP _0x1C
                  _0x19:
-                 ; 0000 009D 			Uint_Current_value /= Uchar_loop_cnt;
-00008f d0ab      	RCALL SUBOPT_0x6
-000090 d0e3      	RCALL SUBOPT_0xF
-000091 d0e5      	RCALL SUBOPT_0x10
-                 ; 0000 009E 			Uint_Current_value = Uint_Current_value*5*current_scale*10/1024;
-000092 d0ee      	RCALL SUBOPT_0x11
-                 ; 0000 009F 			if(Uint_Current_value > Uint_CurrentSet_value)	return Err;
-000093 f410      	BRSH _0x1A
-000094 e0e0      	LDI  R30,LOW(0)
-000095 c03f      	RJMP _0x2000001
-                 ; 0000 00A0 			// if(Uint_Current_value > 40)	return Err;
-                 ; 0000 00A1 
-                 ; 0000 00A2 			for(Uchar_loop_cnt = 0; Uchar_loop_cnt <= Uchar_Sample_count; Uchar_loop_cnt++)
-                 _0x1A:
-000096 d08a      	RCALL SUBOPT_0x1
-                 _0x1C:
-000097 81ac      	LDD  R26,Y+4
-000098 163a      	CP   R3,R26
-000099 f018      	BRLO _0x1D
-                 ; 0000 00A3 			{
-                 ; 0000 00A4 				Uint_Current_value += Uint_Current3_adc[Uchar_loop_cnt];
-00009a d0fb      	RCALL SUBOPT_0x13
-                 ; 0000 00A5 			}
-00009b d09b      	RCALL SUBOPT_0x5
-00009c cffa      	RJMP _0x1C
+                 ; 0000 0095 		{
+                 ; 0000 0096 			Uint_Current_value = read_adc(ADC_current_L2);
+00007a e0a2      	LDI  R26,LOW(2)
+00007b d058      	RCALL SUBOPT_0x1
+00007c d067      	RCALL SUBOPT_0x5
+                 ; 0000 0097 			Uint_Current_value = Uint_Current_value*5*current_scale*10/1024;
+00007d d06b      	RCALL SUBOPT_0x6
+00007e d079      	RCALL SUBOPT_0x7
+                 ; 0000 0098 			if(Uint_Current_value > Uint_CurrentSet_value)
+00007f f418      	BRSH _0x1D
+                 ; 0000 0099 			{
+                 ; 0000 009A 				Bit_warning = 1;
+000080 9a9a      	SBI  0x13,2
+                 ; 0000 009B 				Uchar_Sample_count = 0;
+000081 2444      	CLR  R4
+                 ; 0000 009C 				//return Err;
+                 ; 0000 009D 			}
+                 ; 0000 009E 			else
+000082 c010      	RJMP _0x20
                  _0x1D:
-                 ; 0000 00A6 			Uint_Current_value /= Uchar_loop_cnt;
-00009d d09d      	RCALL SUBOPT_0x6
-00009e d0d5      	RCALL SUBOPT_0xF
-00009f d0d7      	RCALL SUBOPT_0x10
-                 ; 0000 00A7 			Uint_Current_value = Uint_Current_value*5*current_scale*10/1024;
-0000a0 d0e0      	RCALL SUBOPT_0x11
-                 ; 0000 00A8 			if(Uint_Current_value > Uint_CurrentSet_value)	return Err;
-0000a1 f410      	BRSH _0x1E
-0000a2 e0e0      	LDI  R30,LOW(0)
-0000a3 c031      	RJMP _0x2000001
-                 ; 0000 00A9         }
-                 _0x1E:
-                 ; 0000 00AA 		else
-0000a4 c02f      	RJMP _0x1F
-                 _0xE:
-                 ; 0000 00AB 		{
-                 ; 0000 00AC 			for(Uchar_loop_cnt = 0; Uchar_loop_cnt < num_sample; Uchar_loop_cnt++)
-0000a5 d07b      	RCALL SUBOPT_0x1
+                 ; 0000 009F 			{
+                 ; 0000 00A0 				Uint_Current_value = read_adc(ADC_current_L3);
+000083 e0a3      	LDI  R26,LOW(3)
+000084 d04f      	RCALL SUBOPT_0x1
+000085 d05e      	RCALL SUBOPT_0x5
+                 ; 0000 00A1 				Uint_Current_value = Uint_Current_value*5*current_scale*10/1024;
+000086 d062      	RCALL SUBOPT_0x6
+000087 d070      	RCALL SUBOPT_0x7
+                 ; 0000 00A2 				if(Uint_Current_value > Uint_CurrentSet_value)
+000088 f418      	BRSH _0x21
+                 ; 0000 00A3 				{
+                 ; 0000 00A4 					Bit_warning = 1;
+000089 9a9a      	SBI  0x13,2
+                 ; 0000 00A5 					Uchar_Sample_count = 0;
+00008a 2444      	CLR  R4
+                 ; 0000 00A6 					//return Err;
+                 ; 0000 00A7 				}
+                 ; 0000 00A8 				else
+00008b c007      	RJMP _0x24
                  _0x21:
-0000a6 d0fa      	RCALL SUBOPT_0x14
-0000a7 f418      	BRSH _0x22
-                 ; 0000 00AD 			{
-                 ; 0000 00AE 				Uint_CurrentSet_value += Uint_CurrentSet_adc[Uchar_loop_cnt];
-0000a8 d082      	RCALL SUBOPT_0x4
-                 ; 0000 00AF 			}
-0000a9 d08d      	RCALL SUBOPT_0x5
-0000aa cffb      	RJMP _0x21
-                 _0x22:
-                 ; 0000 00B0 			Uint_CurrentSet_value /= num_sample;
-0000ab d092      	RCALL SUBOPT_0x7
-0000ac d0f7      	RCALL SUBOPT_0x15
-0000ad d093      	RCALL SUBOPT_0x8
-                 ; 0000 00B1 			if(Uint_CurrentSet_value >= CURRENT_SET_ADC_VALUE_MAX)	Uint_CurrentSet_value = CURRENT_SET_ADC_VALUE_MAX;
-0000ae f010      	BRLO _0x23
-0000af d099      	RCALL SUBOPT_0x9
-0000b0 d09b      	RCALL SUBOPT_0xA
-                 ; 0000 00B2 			Uint_CurrentSet_value = (unsigned int)((float)(Uint_CurrentSet_value*10/CURRENT_SET_ADC_VALUE_MAX)*(CURRENT_SET_MAX - ...
-                 _0x23:
-0000b1 d09d      	RCALL SUBOPT_0xB
-0000b2 d09f      	RCALL SUBOPT_0xC
-0000b3 d0a2      	RCALL SUBOPT_0xD
-                 ; 0000 00B3 
-                 ; 0000 00B4 			for(Uchar_loop_cnt = 0; Uchar_loop_cnt < num_sample; Uchar_loop_cnt++)
+                 ; 0000 00A9 				{
+                 ; 0000 00AA 					Uchar_Sample_count++;
+00008c 9443      	INC  R4
+                 ; 0000 00AB 					if(Uchar_Sample_count > 10)
+00008d e0ea      	LDI  R30,LOW(10)
+00008e 15e4      	CP   R30,R4
+00008f f418      	BRSH _0x25
+                 ; 0000 00AC 					{
+                 ; 0000 00AD 						Bit_warning = 0;
+000090 989a      	CBI  0x13,2
+                 ; 0000 00AE 						Uchar_Sample_count = 6;
+000091 e0e6      	LDI  R30,LOW(6)
+000092 2e4e      	MOV  R4,R30
+                 ; 0000 00AF 					}
+                 ; 0000 00B0 					//return Ok;
+                 ; 0000 00B1 				}
                  _0x25:
-0000b4 d0ec      	RCALL SUBOPT_0x14
-0000b5 f418      	BRSH _0x26
-                 ; 0000 00B5 			{
-                 ; 0000 00B6 				Uint_Current_value += Uint_Current1_adc[Uchar_loop_cnt];
-0000b6 d0b1      	RCALL SUBOPT_0xE
-                 ; 0000 00B7 			}
-0000b7 d07f      	RCALL SUBOPT_0x5
-0000b8 cffb      	RJMP _0x25
-                 _0x26:
-                 ; 0000 00B8 			Uint_Current_value /=num_sample;
-0000b9 d0ed      	RCALL SUBOPT_0x16
-                 ; 0000 00B9 			Uint_Current_value = Uint_Current_value*5*current_scale*10/1024;
-0000ba d0c6      	RCALL SUBOPT_0x11
-                 ; 0000 00BA 			if(Uint_Current_value > Uint_CurrentSet_value)	return Err;
-0000bb f410      	BRSH _0x27
-0000bc e0e0      	LDI  R30,LOW(0)
-0000bd c017      	RJMP _0x2000001
-                 ; 0000 00BB 
-                 ; 0000 00BC 			for(Uchar_loop_cnt = 0; Uchar_loop_cnt < num_sample; Uchar_loop_cnt++)
-                 _0x27:
-0000be d062      	RCALL SUBOPT_0x1
-                 _0x29:
-0000bf d0e1      	RCALL SUBOPT_0x14
-0000c0 f418      	BRSH _0x2A
-                 ; 0000 00BD 			{
-                 ; 0000 00BE 				Uint_Current_value += Uint_Current2_adc[Uchar_loop_cnt];
-0000c1 d0c9      	RCALL SUBOPT_0x12
-                 ; 0000 00BF 			}
-0000c2 d074      	RCALL SUBOPT_0x5
-0000c3 cffb      	RJMP _0x29
-                 _0x2A:
-                 ; 0000 00C0 			Uint_Current_value /=num_sample;
-0000c4 d0e2      	RCALL SUBOPT_0x16
-                 ; 0000 00C1 			Uint_Current_value = Uint_Current_value*5*current_scale*10/1024;
-0000c5 d0bb      	RCALL SUBOPT_0x11
-                 ; 0000 00C2 			if(Uint_Current_value > Uint_CurrentSet_value)	return Err;
-0000c6 f410      	BRSH _0x2B
-0000c7 e0e0      	LDI  R30,LOW(0)
-0000c8 c00c      	RJMP _0x2000001
-                 ; 0000 00C3 			// if(Uint_Current_value > 40)	return Err;
-                 ; 0000 00C4 
-                 ; 0000 00C5 			for(Uchar_loop_cnt = 0; Uchar_loop_cnt < num_sample; Uchar_loop_cnt++)
-                 _0x2B:
-0000c9 d057      	RCALL SUBOPT_0x1
-                 _0x2D:
-0000ca d0d6      	RCALL SUBOPT_0x14
-0000cb f418      	BRSH _0x2E
-                 ; 0000 00C6 			{
-                 ; 0000 00C7 				Uint_Current_value += Uint_Current3_adc[Uchar_loop_cnt];
-0000cc d0c9      	RCALL SUBOPT_0x13
-                 ; 0000 00C8 			}
-0000cd d069      	RCALL SUBOPT_0x5
-0000ce cffb      	RJMP _0x2D
-                 _0x2E:
-                 ; 0000 00C9 			Uint_Current_value /= num_sample;
-0000cf d0d7      	RCALL SUBOPT_0x16
-                 ; 0000 00CA 			Uint_Current_value = Uint_Current_value*5*current_scale*10/1024;
-0000d0 d0b0      	RCALL SUBOPT_0x11
-                 ; 0000 00CB 			if(Uint_Current_value > Uint_CurrentSet_value)	return Err;
-0000d1 f410      	BRSH _0x2F
-0000d2 e0e0      	LDI  R30,LOW(0)
-0000d3 c001      	RJMP _0x2000001
-                 ; 0000 00CC 		}
-                 _0x2F:
-                 _0x1F:
-                 ; 0000 00CD 		return Ok;
-0000d4 e0e1      	LDI  R30,LOW(1)
-                 _0x2000001:
-0000d5 9625      	ADIW R28,5
-0000d6 9508      	RET
-                 ; 0000 00CE 	}
-0000d7 9625      	ADIW R28,5
-                 ; 0000 00CF 	return Processing;
-                 _0x8:
-0000d8 e0e2      	LDI  R30,LOW(2)
-0000d9 9508      	RET
-                 ; 0000 00D0 }
+                 _0x24:
+                 ; 0000 00B2 			}
+                 _0x20:
+                 ; 0000 00B3 		}
+                 _0x1C:
+                 ; 0000 00B4 		Bit_TimerOverflow = 0;
+000093 9899      	CBI  0x13,1
+                 ; 0000 00B5 
+                 ; 0000 00B6 
+                 ; 0000 00B7 		// AI10_Current_L1[Uchar_Sample_count] = read_adc(ADC_current_L1);
+                 ; 0000 00B8 		// AI10_Current_L2[Uchar_Sample_count] = read_adc(ADC_current_L2);
+                 ; 0000 00B9 		// AI10_Current_L3[Uchar_Sample_count] = read_adc(ADC_current_L3);
+                 ; 0000 00BA 
+                 ; 0000 00BB 		// AI10_SetCurrent_VR1[Uchar_Sample_count] = read_adc(ADC_current_set);
+                 ; 0000 00BC 
+                 ; 0000 00BD 		// Uchar_Sample_count++;
+                 ; 0000 00BE 		// if(Uchar_Sample_count >= num_sample)
+                 ; 0000 00BF 		// {
+                 ; 0000 00C0 		// 	Uchar_Sample_count = 0;
+                 ; 0000 00C1 		// 	Bit_AdcSample_full = 1;
+                 ; 0000 00C2 		// }
+                 ; 0000 00C3 
+                 ; 0000 00C4 		// /* So mau lay duoc chua dat du num_sample (10) */
+                 ; 0000 00C5 		// if(Bit_AdcSample_full == 0)
+                 ; 0000 00C6 		// {
+                 ; 0000 00C7 		// 	/* tinh trung binh gia tri dien ap set doc duoc */
+                 ; 0000 00C8 		// 	Uint_CurrentSet_value = 0;
+                 ; 0000 00C9         //     for(Uchar_loop_cnt = 0; Uchar_loop_cnt < Uchar_Sample_count; Uchar_loop_cnt++)
+                 ; 0000 00CA 		// 	{
+                 ; 0000 00CB 		// 		Uint_CurrentSet_value += AI10_SetCurrent_VR1[Uchar_loop_cnt];
+                 ; 0000 00CC 		// 	}
+                 ; 0000 00CD 		// 	Uint_CurrentSet_value /= Uchar_loop_cnt;
+                 ; 0000 00CE 		// 	if(Uint_CurrentSet_value >= CURRENT_SET_ADC_VALUE_MAX)	Uint_CurrentSet_value = CURRENT_SET_ADC_VALUE_MAX;
+                 ; 0000 00CF 		// 	Uint_CurrentSet_value = ((Uint_CurrentSet_value*10/CURRENT_SET_ADC_VALUE_MAX)*(CURRENT_SET_MAX - CURRENT_SET_MIN)) ...
+                 ; 0000 00D0 
+                 ; 0000 00D1 
+                 ; 0000 00D2         //     /* TInh trung binh gia tri dien ap doc duoc tu L1 */
+                 ; 0000 00D3 		// 	Uint_Current_value = 0;
+                 ; 0000 00D4 		// 	for(Uchar_loop_cnt = 0; Uchar_loop_cnt < Uchar_Sample_count; Uchar_loop_cnt++)
+                 ; 0000 00D5 		// 	{
+                 ; 0000 00D6 		// 		Uint_Current_value += AI10_Current_L1[Uchar_loop_cnt];
+                 ; 0000 00D7 		// 	}
+                 ; 0000 00D8 		// 	Uint_Current_value /= Uchar_loop_cnt;
+                 ; 0000 00D9 		// 	Uint_Current_value = Uint_Current_value*5*current_scale*10/1024;
+                 ; 0000 00DA 		// 	if(Uint_Current_value > Uint_CurrentSet_value)	return Err;
+                 ; 0000 00DB 
+                 ; 0000 00DC 		// 	/* TInh trung binh gia tri dien ap doc duoc tu L2 */
+                 ; 0000 00DD 		// 	Uint_Current_value = 0;
+                 ; 0000 00DE 		// 	for(Uchar_loop_cnt = 0; Uchar_loop_cnt < Uchar_Sample_count; Uchar_loop_cnt++)
+                 ; 0000 00DF 		// 	{
+                 ; 0000 00E0 		// 		Uint_Current_value += AI10_Current_L2[Uchar_loop_cnt];
+                 ; 0000 00E1 		// 	}
+                 ; 0000 00E2 		// 	Uint_Current_value /= Uchar_loop_cnt;
+                 ; 0000 00E3 		// 	Uint_Current_value = Uint_Current_value*5*current_scale*10/1024;
+                 ; 0000 00E4 		// 	if(Uint_Current_value > Uint_CurrentSet_value)	return Err;
+                 ; 0000 00E5 
+                 ; 0000 00E6 		// 	/* TInh trung binh gia tri dien ap doc duoc tu L3 */
+                 ; 0000 00E7 		// 	Uint_Current_value = 0;
+                 ; 0000 00E8 		// 	for(Uchar_loop_cnt = 0; Uchar_loop_cnt <= Uchar_Sample_count; Uchar_loop_cnt++)
+                 ; 0000 00E9 		// 	{
+                 ; 0000 00EA 		// 		Uint_Current_value += AI10_Current_L3[Uchar_loop_cnt];
+                 ; 0000 00EB 		// 	}
+                 ; 0000 00EC 		// 	Uint_Current_value /= Uchar_loop_cnt;
+                 ; 0000 00ED 		// 	Uint_Current_value = Uint_Current_value*5*current_scale*10/1024;
+                 ; 0000 00EE 		// 	if(Uint_Current_value > Uint_CurrentSet_value)	return Err;
+                 ; 0000 00EF 
+                 ; 0000 00F0 		// 	return Ok;
+                 ; 0000 00F1         // }
+                 ; 0000 00F2 		// else /* So mau da duoc lay du num_sample*/
+                 ; 0000 00F3 		// {
+                 ; 0000 00F4 		// 	Uint_CurrentSet_value = 0;
+                 ; 0000 00F5 		// 	for(Uchar_loop_cnt = 0; Uchar_loop_cnt < num_sample; Uchar_loop_cnt++)
+                 ; 0000 00F6 		// 	{
+                 ; 0000 00F7 		// 		Uint_CurrentSet_value += AI10_SetCurrent_VR1[Uchar_loop_cnt];
+                 ; 0000 00F8 		// 	}
+                 ; 0000 00F9 		// 	Uint_CurrentSet_value /= num_sample;
+                 ; 0000 00FA 		// 	if(Uint_CurrentSet_value >= CURRENT_SET_ADC_VALUE_MAX)	Uint_CurrentSet_value = CURRENT_SET_ADC_VALUE_MAX;
+                 ; 0000 00FB 		// 	Uint_CurrentSet_value = ((Uint_CurrentSet_value*10/CURRENT_SET_ADC_VALUE_MAX)*(CURRENT_SET_MAX - CURRENT_SET_MIN)) ...
+                 ; 0000 00FC 
+                 ; 0000 00FD 		// 	Uint_Current_value = 0;
+                 ; 0000 00FE 		// 	for(Uchar_loop_cnt = 0; Uchar_loop_cnt < num_sample; Uchar_loop_cnt++)
+                 ; 0000 00FF 		// 	{
+                 ; 0000 0100 		// 		Uint_Current_value += AI10_Current_L1[Uchar_loop_cnt];
+                 ; 0000 0101 		// 	}
+                 ; 0000 0102 		// 	Uint_Current_value /=num_sample;
+                 ; 0000 0103 		// 	Uint_Current_value = Uint_Current_value*5*current_scale*10/1024;
+                 ; 0000 0104 		// 	if(Uint_Current_value > Uint_CurrentSet_value)	return Err;
+                 ; 0000 0105 
+                 ; 0000 0106 		// 	Uint_Current_value = 0;
+                 ; 0000 0107 		// 	for(Uchar_loop_cnt = 0; Uchar_loop_cnt < num_sample; Uchar_loop_cnt++)
+                 ; 0000 0108 		// 	{
+                 ; 0000 0109 		// 		Uint_Current_value += AI10_Current_L2[Uchar_loop_cnt];
+                 ; 0000 010A 		// 	}
+                 ; 0000 010B 		// 	Uint_Current_value /=num_sample;
+                 ; 0000 010C 		// 	Uint_Current_value = Uint_Current_value*5*current_scale*10/1024;
+                 ; 0000 010D 		// 	if(Uint_Current_value > Uint_CurrentSet_value)	return Err;
+                 ; 0000 010E 
+                 ; 0000 010F 		// 	Uint_Current_value = 0;
+                 ; 0000 0110 		// 	for(Uchar_loop_cnt = 0; Uchar_loop_cnt < num_sample; Uchar_loop_cnt++)
+                 ; 0000 0111 		// 	{
+                 ; 0000 0112 		// 		Uint_Current_value += AI10_Current_L3[Uchar_loop_cnt];
+                 ; 0000 0113 		// 	}
+                 ; 0000 0114 		// 	Uint_Current_value /= num_sample;
+                 ; 0000 0115 		// 	Uint_Current_value = Uint_Current_value*5*current_scale*10/1024;
+                 ; 0000 0116 		// 	if(Uint_Current_value > Uint_CurrentSet_value)	return Err;
+                 ; 0000 0117 
+                 ; 0000 0118 		// 	return Ok;
+                 ; 0000 0119 		// }
+                 ; 0000 011A 	}
+000094 9629      	ADIW R28,9
+                 ; 0000 011B 	return Processing;
+                 _0x17:
+000095 e0e2      	LDI  R30,LOW(2)
+000096 9508      	RET
+                 ; 0000 011C }
                  ; .FEND
                  ;
                  ;
                  ;/*
-                 ;*	Dieu khien cac tin hieu canh bao dua vao trang thai cac co canh bao
+                 ;*	Dieu khien cac tin hieu canh bao dua vao trang thai tra ve cua ham doc gia tri dong dien
+                 ;*	Err : Bat tin hieu canh bao
+                 ;*	Ok : Tat tien hieu canh bao
                  ;*/
-                 ;void	Protect_control(void)
-                 ; 0000 00D7 {
-                 _Protect_control:
-                 ; .FSTART _Protect_control
-                 ; 0000 00D8 	unsigned char	Uchar_respone = Processing;
-                 ; 0000 00D9 	Uchar_respone = Current_get_value();
-0000da 931a      	ST   -Y,R17
+                 ;void	Control_ProtectPower(void)
+                 ; 0000 0125 {
+                 _Control_ProtectPower:
+                 ; .FSTART _Control_ProtectPower
+                 ; 0000 0126 	unsigned char	Uchar_respone = Processing;
+                 ; 0000 0127 	Uchar_respone = Read_value_current();
+000097 931a      	ST   -Y,R17
                  ;	Uchar_respone -> R17
-0000db e012      	LDI  R17,2
-0000dc df5e      	RCALL _Current_get_value
-0000dd 2f1e      	MOV  R17,R30
-                 ; 0000 00DA 	if(Uchar_respone == Err)
-0000de 3010      	CPI  R17,0
-0000df f419      	BRNE _0x30
-                 ; 0000 00DB 	{
-                 ; 0000 00DC 		BUZZER_ON;
-0000e0 9ac0      	SBI  0x18,0
-                 ; 0000 00DD 		RELAY_ON;
-0000e1 9ac1      	SBI  0x18,1
-                 ; 0000 00DE 	}
-                 ; 0000 00DF 	else if(Uchar_respone == Ok)
-0000e2 c004      	RJMP _0x35
-                 _0x30:
-0000e3 3011      	CPI  R17,1
-0000e4 f411      	BRNE _0x36
-                 ; 0000 00E0 	{
-                 ; 0000 00E1 		BUZZER_OFF;
-0000e5 98c0      	CBI  0x18,0
-                 ; 0000 00E2 		RELAY_OFF;
-0000e6 98c1      	CBI  0x18,1
-                 ; 0000 00E3 	}
-                 ; 0000 00E4 }
-                 _0x36:
-                 _0x35:
-0000e7 9119      	LD   R17,Y+
-0000e8 9508      	RET
+000098 e012      	LDI  R17,2
+000099 dfbb      	RCALL _Read_value_current
+00009a 2f1e      	MOV  R17,R30
+                 ; 0000 0128 	//Bit_warning = 1;
+                 ; 0000 0129 	// if(Uchar_respone == Err)
+                 ; 0000 012A 	// {
+                 ; 0000 012B 	// 	Bit_warning = 1;
+                 ; 0000 012C 	// }
+                 ; 0000 012D 	// else if(Uchar_respone == Ok)
+                 ; 0000 012E 	// {
+                 ; 0000 012F 	// 	Bit_warning = 0;
+                 ; 0000 0130 	// }
+                 ; 0000 0131 }
+00009b 9119      	LD   R17,Y+
+00009c 9508      	RET
                  ; .FEND
                  ;
                  ;void main(void)
-                 ; 0000 00E7 {
+                 ; 0000 0134 {
                  _main:
                  ; .FSTART _main
-                 ; 0000 00E8 // Declare your local variables here
-                 ; 0000 00E9 // Crystal Oscillator division factor: 1
-                 ; 0000 00EA #pragma optsize-
-                 ; 0000 00EB CLKPR=(1<<CLKPCE);
-0000e9 e8e0      	LDI  R30,LOW(128)
-0000ea bde6      	OUT  0x26,R30
-                 ; 0000 00EC CLKPR=(0<<CLKPCE) | (0<<CLKPS3) | (0<<CLKPS2) | (0<<CLKPS1) | (0<<CLKPS0);
-0000eb e0e0      	LDI  R30,LOW(0)
-0000ec bde6      	OUT  0x26,R30
-                 ; 0000 00ED #ifdef _OPTIMIZE_SIZE_
-                 ; 0000 00EE #pragma optsize+
-                 ; 0000 00EF #endif
-                 ; 0000 00F0 // Input/Output Ports initialization
-                 ; 0000 00F1 // Port A initialization
-                 ; 0000 00F2 // Function: Bit7=In Bit6=In Bit5=In Bit4=In Bit3=In Bit2=In Bit1=In Bit0=In
-                 ; 0000 00F3 DDRA=(0<<DDA7) | (0<<DDA6) | (0<<DDA5) | (0<<DDA4) | (0<<DDA3) | (0<<DDA2) | (0<<DDA1) | (0<<DDA0);
-0000ed bbea      	OUT  0x1A,R30
-                 ; 0000 00F4 // State: Bit7=T Bit6=T Bit5=T Bit4=T Bit3=T Bit2=T Bit1=T Bit0=T
-                 ; 0000 00F5 PORTA=(0<<PORTA7) | (0<<PORTA6) | (0<<PORTA5) | (0<<PORTA4) | (0<<PORTA3) | (0<<PORTA2) | (0<<PORTA1) | (0<<PORTA0);
-0000ee bbeb      	OUT  0x1B,R30
-                 ; 0000 00F6 
-                 ; 0000 00F7 // Port B initialization
-                 ; 0000 00F8 // Function: Bit3=Out Bit2=In Bit1=Out Bit0=Out
-                 ; 0000 00F9 DDRB=(1<<DDB3) | (1<<DDB2) | (1<<DDB1) | (1<<DDB0);
-0000ef e0ef      	LDI  R30,LOW(15)
-0000f0 bbe7      	OUT  0x17,R30
-                 ; 0000 00FA // State: Bit3=0 Bit2=T Bit1=0 Bit0=0
-                 ; 0000 00FB PORTB=(0<<PORTB3) | (0<<PORTB2) | (0<<PORTB1) | (0<<PORTB0);
-0000f1 e0e0      	LDI  R30,LOW(0)
-0000f2 bbe8      	OUT  0x18,R30
-                 ; 0000 00FC 
-                 ; 0000 00FD // Timer/Counter 0 initialization
-                 ; 0000 00FE // Clock source: System Clock
-                 ; 0000 00FF // Clock value: Timer 0 Stopped
-                 ; 0000 0100 // Mode: Normal top=0xFF
-                 ; 0000 0101 // OC0A output: Disconnected
-                 ; 0000 0102 // OC0B output: Disconnected
-                 ; 0000 0103 TCCR0A=(0<<COM0A1) | (0<<COM0A0) | (0<<COM0B1) | (0<<COM0B0) | (0<<WGM01) | (0<<WGM00);
-0000f3 bfe0      	OUT  0x30,R30
-                 ; 0000 0104 TCCR0B=(0<<WGM02) | (0<<CS02) | (0<<CS01) | (0<<CS00);
-0000f4 bfe3      	OUT  0x33,R30
-                 ; 0000 0105 TCNT0=0x00;
-0000f5 bfe2      	OUT  0x32,R30
-                 ; 0000 0106 OCR0A=0x00;
-0000f6 bfe6      	OUT  0x36,R30
-                 ; 0000 0107 OCR0B=0x00;
-0000f7 bfec      	OUT  0x3C,R30
-                 ; 0000 0108 
-                 ; 0000 0109 // Timer/Counter 1 initialization
-                 ; 0000 010A // Clock source: System Clock
-                 ; 0000 010B // Clock value: 125,000 kHz
-                 ; 0000 010C // Mode: Normal top=0xFFFF
-                 ; 0000 010D // OC1A output: Disconnected
-                 ; 0000 010E // OC1B output: Disconnected
-                 ; 0000 010F // Noise Canceler: Off
-                 ; 0000 0110 // Input Capture on Falling Edge
-                 ; 0000 0111 // Timer Period: 0,1 s
-                 ; 0000 0112 // Timer1 Overflow Interrupt: On
-                 ; 0000 0113 // Input Capture Interrupt: Off
-                 ; 0000 0114 // Compare A Match Interrupt: Off
-                 ; 0000 0115 // Compare B Match Interrupt: Off
-                 ; 0000 0116 TCCR1A=(0<<COM1A1) | (0<<COM1A0) | (0<<COM1B1) | (0<<COM1B0) | (0<<WGM11) | (0<<WGM10);
-0000f8 bdef      	OUT  0x2F,R30
-                 ; 0000 0117 TCCR1B=(0<<ICNC1) | (0<<ICES1) | (0<<WGM13) | (0<<WGM12) | (0<<CS12) | (1<<CS11) | (1<<CS10);
-0000f9 e0e3      	LDI  R30,LOW(3)
-0000fa bdee      	OUT  0x2E,R30
-                 ; 0000 0118 TCNT1H=0xCF;
-0000fb d020      	RCALL SUBOPT_0x0
-                 ; 0000 0119 TCNT1L=0x2C;
-                 ; 0000 011A ICR1H=0x00;
-0000fc e0e0      	LDI  R30,LOW(0)
-0000fd bde5      	OUT  0x25,R30
-                 ; 0000 011B ICR1L=0x00;
-0000fe bde4      	OUT  0x24,R30
-                 ; 0000 011C OCR1AH=0x00;
-0000ff bdeb      	OUT  0x2B,R30
-                 ; 0000 011D OCR1AL=0x00;
-000100 bdea      	OUT  0x2A,R30
-                 ; 0000 011E OCR1BH=0x00;
-000101 bde9      	OUT  0x29,R30
-                 ; 0000 011F OCR1BL=0x00;
-000102 bde8      	OUT  0x28,R30
-                 ; 0000 0120 // // Timer/Counter 1 initialization
-                 ; 0000 0121 // // Clock source: System Clock
-                 ; 0000 0122 // // Clock value: 31.250 kHz
-                 ; 0000 0123 // // Mode: Normal top=0xFFFF
-                 ; 0000 0124 // // OC1A output: Disconnected
-                 ; 0000 0125 // // OC1B output: Disconnected
-                 ; 0000 0126 // // Noise Canceler: Off
-                 ; 0000 0127 // // Input Capture on Falling Edge
-                 ; 0000 0128 // // Timer Period: 1 s
-                 ; 0000 0129 // // Timer1 Overflow Interrupt: On
-                 ; 0000 012A // // Input Capture Interrupt: Off
-                 ; 0000 012B // // Compare A Match Interrupt: Off
-                 ; 0000 012C // // Compare B Match Interrupt: Off
-                 ; 0000 012D // TCCR1A=(0<<COM1A1) | (0<<COM1A0) | (0<<COM1B1) | (0<<COM1B0) | (0<<WGM11) | (0<<WGM10);
-                 ; 0000 012E // TCCR1B=(0<<ICNC1) | (0<<ICES1) | (0<<WGM13) | (0<<WGM12) | (1<<CS12) | (0<<CS11) | (0<<CS10);
-                 ; 0000 012F // TCNT1H=0x85;
-                 ; 0000 0130 // TCNT1L=0xEE;
-                 ; 0000 0131 // ICR1H=0x00;
-                 ; 0000 0132 // ICR1L=0x00;
-                 ; 0000 0133 // OCR1AH=0x00;
-                 ; 0000 0134 // OCR1AL=0x00;
-                 ; 0000 0135 // OCR1BH=0x00;
-                 ; 0000 0136 // OCR1BL=0x00;
-                 ; 0000 0137 // Timer/Counter 0 Interrupt(s) initialization
-                 ; 0000 0138 TIMSK0=(0<<OCIE0B) | (0<<OCIE0A) | (0<<TOIE0);
-000103 bfe9      	OUT  0x39,R30
-                 ; 0000 0139 
-                 ; 0000 013A // Timer/Counter 1 Interrupt(s) initialization
-                 ; 0000 013B TIMSK1=(0<<ICIE1) | (0<<OCIE1B) | (0<<OCIE1A) | (1<<TOIE1);
-000104 e0e1      	LDI  R30,LOW(1)
-000105 b9ec      	OUT  0xC,R30
-                 ; 0000 013C 
-                 ; 0000 013D // External Interrupt(s) initialization
-                 ; 0000 013E // INT0: Off
-                 ; 0000 013F // Interrupt on any change on pins PCINT0-7: Off
-                 ; 0000 0140 // Interrupt on any change on pins PCINT8-11: Off
-                 ; 0000 0141 MCUCR=(0<<ISC01) | (0<<ISC00);
-000106 e0e0      	LDI  R30,LOW(0)
-000107 bfe5      	OUT  0x35,R30
-                 ; 0000 0142 GIMSK=(0<<INT0) | (0<<PCIE1) | (0<<PCIE0);
-000108 bfeb      	OUT  0x3B,R30
+                 ; 0000 0135 // Declare your local variables here
+                 ; 0000 0136 // Crystal Oscillator division factor: 1
+                 ; 0000 0137 #pragma optsize-
+                 ; 0000 0138 CLKPR=(1<<CLKPCE);
+00009d e8e0      	LDI  R30,LOW(128)
+00009e bde6      	OUT  0x26,R30
+                 ; 0000 0139 CLKPR=(0<<CLKPCE) | (0<<CLKPS3) | (0<<CLKPS2) | (0<<CLKPS1) | (0<<CLKPS0);
+00009f e0e0      	LDI  R30,LOW(0)
+0000a0 bde6      	OUT  0x26,R30
+                 ; 0000 013A #ifdef _OPTIMIZE_SIZE_
+                 ; 0000 013B #pragma optsize+
+                 ; 0000 013C #endif
+                 ; 0000 013D // Input/Output Ports initialization
+                 ; 0000 013E // Port A initialization
+                 ; 0000 013F // Function: Bit7=In Bit6=In Bit5=In Bit4=In Bit3=In Bit2=In Bit1=In Bit0=In
+                 ; 0000 0140 DDRA=(0<<DDA7) | (0<<DDA6) | (0<<DDA5) | (0<<DDA4) | (0<<DDA3) | (0<<DDA2) | (0<<DDA1) | (0<<DDA0);
+0000a1 bbea      	OUT  0x1A,R30
+                 ; 0000 0141 // State: Bit7=T Bit6=T Bit5=T Bit4=T Bit3=T Bit2=T Bit1=T Bit0=T
+                 ; 0000 0142 PORTA=(0<<PORTA7) | (0<<PORTA6) | (0<<PORTA5) | (0<<PORTA4) | (0<<PORTA3) | (0<<PORTA2) | (0<<PORTA1) | (0<<PORTA0);
+0000a2 bbeb      	OUT  0x1B,R30
                  ; 0000 0143 
-                 ; 0000 0144 // USI initialization
-                 ; 0000 0145 // Mode: Disabled
-                 ; 0000 0146 // Clock source: Register & Counter=no clk.
-                 ; 0000 0147 // USI Counter Overflow Interrupt: Off
-                 ; 0000 0148 USICR=(0<<USISIE) | (0<<USIOIE) | (0<<USIWM1) | (0<<USIWM0) | (0<<USICS1) | (0<<USICS0) | (0<<USICLK) | (0<<USITC);
-000109 b9ed      	OUT  0xD,R30
+                 ; 0000 0144 // Port B initialization
+                 ; 0000 0145 // Function: Bit3=Out Bit2=In Bit1=Out Bit0=Out
+                 ; 0000 0146 DDRB=(1<<DDB3) | (1<<DDB2) | (1<<DDB1) | (1<<DDB0);
+0000a3 e0ef      	LDI  R30,LOW(15)
+0000a4 bbe7      	OUT  0x17,R30
+                 ; 0000 0147 // State: Bit3=0 Bit2=T Bit1=0 Bit0=0
+                 ; 0000 0148 PORTB=(0<<PORTB3) | (0<<PORTB2) | (0<<PORTB1) | (0<<PORTB0);
+0000a5 e0e0      	LDI  R30,LOW(0)
+0000a6 bbe8      	OUT  0x18,R30
                  ; 0000 0149 
-                 ; 0000 014A // Analog Comparator initialization
-                 ; 0000 014B // Analog Comparator: Off
-                 ; 0000 014C // The Analog Comparator's positive input is
-                 ; 0000 014D // connected to the AIN0 pin
-                 ; 0000 014E // The Analog Comparator's negative input is
-                 ; 0000 014F // connected to the AIN1 pin
-                 ; 0000 0150 ACSR=(1<<ACD) | (0<<ACBG) | (0<<ACO) | (0<<ACI) | (0<<ACIE) | (0<<ACIC) | (0<<ACIS1) | (0<<ACIS0);
-00010a e8e0      	LDI  R30,LOW(128)
-00010b b9e8      	OUT  0x8,R30
-                 ; 0000 0151 // Digital input buffer on AIN0: On
-                 ; 0000 0152 // Digital input buffer on AIN1: On
-                 ; 0000 0153 DIDR0=(0<<ADC1D) | (0<<ADC2D);
-00010c e0e0      	LDI  R30,LOW(0)
-00010d b9e1      	OUT  0x1,R30
-                 ; 0000 0154 
+                 ; 0000 014A // Timer/Counter 0 initialization
+                 ; 0000 014B // Clock source: System Clock
+                 ; 0000 014C // Clock value: Timer 0 Stopped
+                 ; 0000 014D // Mode: Normal top=0xFF
+                 ; 0000 014E // OC0A output: Disconnected
+                 ; 0000 014F // OC0B output: Disconnected
+                 ; 0000 0150 TCCR0A=(0<<COM0A1) | (0<<COM0A0) | (0<<COM0B1) | (0<<COM0B0) | (0<<WGM01) | (0<<WGM00);
+0000a7 bfe0      	OUT  0x30,R30
+                 ; 0000 0151 TCCR0B=(0<<WGM02) | (0<<CS02) | (0<<CS01) | (0<<CS00);
+0000a8 bfe3      	OUT  0x33,R30
+                 ; 0000 0152 TCNT0=0x00;
+0000a9 bfe2      	OUT  0x32,R30
+                 ; 0000 0153 OCR0A=0x00;
+0000aa bfe6      	OUT  0x36,R30
+                 ; 0000 0154 OCR0B=0x00;
+0000ab bfec      	OUT  0x3C,R30
                  ; 0000 0155 
-                 ; 0000 0156 // ADC initialization
-                 ; 0000 0157 // // ADC Clock frequency: 1000.000 kHz
-                 ; 0000 0158 // // ADC Voltage Reference: AVCC pin
-                 ; 0000 0159 // // ADC Bipolar Input Mode: Off
-                 ; 0000 015A // // ADC Auto Trigger Source: ADC Stopped
-                 ; 0000 015B // // Digital input buffers on ADC0: On, ADC1: Off, ADC2: Off, ADC3: Off
-                 ; 0000 015C // // ADC4: On, ADC5: On, ADC6: On, ADC7: Off
-                 ; 0000 015D // DIDR0=(1<<ADC7D) | (0<<ADC6D) | (0<<ADC5D) | (0<<ADC4D) | (1<<ADC3D) | (1<<ADC2D) | (1<<ADC1D) | (0<<ADC0D);
-                 ; 0000 015E // ADMUX=ADC_VREF_TYPE;
-                 ; 0000 015F // ADCSRA=(1<<ADEN) | (0<<ADSC) | (0<<ADATE) | (0<<ADIF) | (0<<ADIE) | (0<<ADPS2) | (1<<ADPS1) | (1<<ADPS0);
-                 ; 0000 0160 // ADCSRB=(0<<BIN) | (0<<ADLAR) | (0<<ADTS2) | (0<<ADTS1) | (0<<ADTS0);
-                 ; 0000 0161 
-                 ; 0000 0162 
-                 ; 0000 0163 // ADC initialization
-                 ; 0000 0164 // ADC Clock frequency: 1000.000 kHz
-                 ; 0000 0165 // ADC Voltage Reference: AVCC pin
-                 ; 0000 0166 // ADC Bipolar Input Mode: Off
-                 ; 0000 0167 // ADC Auto Trigger Source: ADC Stopped
-                 ; 0000 0168 // Digital input buffers on ADC0: Off, ADC1: On, ADC2: On, ADC3: On
-                 ; 0000 0169 // ADC4: Off, ADC5: Off, ADC6: Off, ADC7: On
-                 ; 0000 016A DIDR0=(0<<ADC7D) | (1<<ADC6D) | (1<<ADC5D) | (1<<ADC4D) | (0<<ADC3D) | (0<<ADC2D) | (0<<ADC1D) | (1<<ADC0D);
-00010e e7e1      	LDI  R30,LOW(113)
-00010f b9e1      	OUT  0x1,R30
-                 ; 0000 016B ADMUX=ADC_VREF_TYPE;
-000110 e0e0      	LDI  R30,LOW(0)
-000111 b9e7      	OUT  0x7,R30
-                 ; 0000 016C ADCSRA=(1<<ADEN) | (0<<ADSC) | (0<<ADATE) | (0<<ADIF) | (0<<ADIE) | (0<<ADPS2) | (1<<ADPS1) | (1<<ADPS0);
-000112 e8e3      	LDI  R30,LOW(131)
-000113 b9e6      	OUT  0x6,R30
-                 ; 0000 016D ADCSRB=(0<<BIN) | (0<<ADLAR) | (0<<ADTS2) | (0<<ADTS1) | (0<<ADTS0);
-000114 e0e0      	LDI  R30,LOW(0)
-000115 b9e3      	OUT  0x3,R30
-                 ; 0000 016E 
-                 ; 0000 016F 
-                 ; 0000 0170 // Watchdog Timer initialization
-                 ; 0000 0171 // Watchdog Timer Prescaler: OSC/2k
-                 ; 0000 0172 // Watchdog timeout action: Reset
-                 ; 0000 0173 //#pragma optsize-
-                 ; 0000 0174 //WDTCSR=(0<<WDIF) | (0<<WDIE) | (0<<WDP3) | (1<<WDCE) | (1<<WDE) | (0<<WDP2) | (0<<WDP1) | (0<<WDP0);
-                 ; 0000 0175 //WDTCSR=(0<<WDIF) | (0<<WDIE) | (0<<WDP3) | (0<<WDCE) | (1<<WDE) | (0<<WDP2) | (0<<WDP1) | (0<<WDP0);
-                 ; 0000 0176 //#ifdef _OPTIMIZE_SIZE_
-                 ; 0000 0177 //#pragma optsize+
-                 ; 0000 0178 //#endif
-                 ; 0000 0179 
-                 ; 0000 017A // Global enable interrupts
-                 ; 0000 017B #asm("sei")
-000116 9478      	sei
-                 ; 0000 017C BUZZER_ON;
-000117 d092      	RCALL SUBOPT_0x17
-                 ; 0000 017D delay_ms(100);
-                 ; 0000 017E BUZZER_OFF;
-                 ; 0000 017F delay_ms(100);
-                 ; 0000 0180 BUZZER_ON;
-000118 d091      	RCALL SUBOPT_0x17
-                 ; 0000 0181 delay_ms(100);
-                 ; 0000 0182 BUZZER_OFF;
-                 ; 0000 0183 delay_ms(100);
-                 ; 0000 0184 	while (1)
-                 _0x43:
-                 ; 0000 0185 	{
-                 ; 0000 0186 		Protect_control();
-000119 dfc0      	RCALL _Protect_control
-                 ; 0000 0187 	}
-00011a cffe      	RJMP _0x43
-                 ; 0000 0188 }
-                 _0x46:
-00011b cfff      	RJMP _0x46
+                 ; 0000 0156 // Timer/Counter 1 initialization
+                 ; 0000 0157 // Clock source: System Clock
+                 ; 0000 0158 // Clock value: 125,000 kHz
+                 ; 0000 0159 // Mode: Normal top=0xFFFF
+                 ; 0000 015A // OC1A output: Disconnected
+                 ; 0000 015B // OC1B output: Disconnected
+                 ; 0000 015C // Noise Canceler: Off
+                 ; 0000 015D // Input Capture on Falling Edge
+                 ; 0000 015E // Timer Period: 0,1 s
+                 ; 0000 015F // Timer1 Overflow Interrupt: On
+                 ; 0000 0160 // Input Capture Interrupt: Off
+                 ; 0000 0161 // Compare A Match Interrupt: Off
+                 ; 0000 0162 // Compare B Match Interrupt: Off
+                 ; 0000 0163 TCCR1A=(0<<COM1A1) | (0<<COM1A0) | (0<<COM1B1) | (0<<COM1B0) | (0<<WGM11) | (0<<WGM10);
+0000ac bdef      	OUT  0x2F,R30
+                 ; 0000 0164 TCCR1B=(0<<ICNC1) | (0<<ICES1) | (0<<WGM13) | (0<<WGM12) | (0<<CS12) | (1<<CS11) | (1<<CS10);
+0000ad e0e3      	LDI  R30,LOW(3)
+0000ae bdee      	OUT  0x2E,R30
+                 ; 0000 0165 TCNT1H=0xCF;
+0000af d01f      	RCALL SUBOPT_0x0
+                 ; 0000 0166 TCNT1L=0x2C;
+                 ; 0000 0167 ICR1H=0x00;
+0000b0 e0e0      	LDI  R30,LOW(0)
+0000b1 bde5      	OUT  0x25,R30
+                 ; 0000 0168 ICR1L=0x00;
+0000b2 bde4      	OUT  0x24,R30
+                 ; 0000 0169 OCR1AH=0x00;
+0000b3 bdeb      	OUT  0x2B,R30
+                 ; 0000 016A OCR1AL=0x00;
+0000b4 bdea      	OUT  0x2A,R30
+                 ; 0000 016B OCR1BH=0x00;
+0000b5 bde9      	OUT  0x29,R30
+                 ; 0000 016C OCR1BL=0x00;
+0000b6 bde8      	OUT  0x28,R30
+                 ; 0000 016D // // Timer/Counter 1 initialization
+                 ; 0000 016E // // Clock source: System Clock
+                 ; 0000 016F // // Clock value: 31.250 kHz
+                 ; 0000 0170 // // Mode: Normal top=0xFFFF
+                 ; 0000 0171 // // OC1A output: Disconnected
+                 ; 0000 0172 // // OC1B output: Disconnected
+                 ; 0000 0173 // // Noise Canceler: Off
+                 ; 0000 0174 // // Input Capture on Falling Edge
+                 ; 0000 0175 // // Timer Period: 1 s
+                 ; 0000 0176 // // Timer1 Overflow Interrupt: On
+                 ; 0000 0177 // // Input Capture Interrupt: Off
+                 ; 0000 0178 // // Compare A Match Interrupt: Off
+                 ; 0000 0179 // // Compare B Match Interrupt: Off
+                 ; 0000 017A // TCCR1A=(0<<COM1A1) | (0<<COM1A0) | (0<<COM1B1) | (0<<COM1B0) | (0<<WGM11) | (0<<WGM10);
+                 ; 0000 017B // TCCR1B=(0<<ICNC1) | (0<<ICES1) | (0<<WGM13) | (0<<WGM12) | (1<<CS12) | (0<<CS11) | (0<<CS10);
+                 ; 0000 017C // TCNT1H=0x85;
+                 ; 0000 017D // TCNT1L=0xEE;
+                 ; 0000 017E // ICR1H=0x00;
+                 ; 0000 017F // ICR1L=0x00;
+                 ; 0000 0180 // OCR1AH=0x00;
+                 ; 0000 0181 // OCR1AL=0x00;
+                 ; 0000 0182 // OCR1BH=0x00;
+                 ; 0000 0183 // OCR1BL=0x00;
+                 ; 0000 0184 // Timer/Counter 0 Interrupt(s) initialization
+                 ; 0000 0185 TIMSK0=(0<<OCIE0B) | (0<<OCIE0A) | (0<<TOIE0);
+0000b7 bfe9      	OUT  0x39,R30
+                 ; 0000 0186 
+                 ; 0000 0187 // // Timer/Counter 1 Interrupt(s) initialization
+                 ; 0000 0188 // TIMSK1=(0<<ICIE1) | (0<<OCIE1B) | (0<<OCIE1A) | (1<<TOIE1);
+                 ; 0000 0189 
+                 ; 0000 018A // External Interrupt(s) initialization
+                 ; 0000 018B // INT0: Off
+                 ; 0000 018C // Interrupt on any change on pins PCINT0-7: Off
+                 ; 0000 018D // Interrupt on any change on pins PCINT8-11: Off
+                 ; 0000 018E MCUCR=(0<<ISC01) | (0<<ISC00);
+0000b8 bfe5      	OUT  0x35,R30
+                 ; 0000 018F GIMSK=(0<<INT0) | (0<<PCIE1) | (0<<PCIE0);
+0000b9 bfeb      	OUT  0x3B,R30
+                 ; 0000 0190 
+                 ; 0000 0191 // USI initialization
+                 ; 0000 0192 // Mode: Disabled
+                 ; 0000 0193 // Clock source: Register & Counter=no clk.
+                 ; 0000 0194 // USI Counter Overflow Interrupt: Off
+                 ; 0000 0195 USICR=(0<<USISIE) | (0<<USIOIE) | (0<<USIWM1) | (0<<USIWM0) | (0<<USICS1) | (0<<USICS0) | (0<<USICLK) | (0<<USITC);
+0000ba b9ed      	OUT  0xD,R30
+                 ; 0000 0196 
+                 ; 0000 0197 // Analog Comparator initialization
+                 ; 0000 0198 // Analog Comparator: Off
+                 ; 0000 0199 // The Analog Comparator's positive input is
+                 ; 0000 019A // connected to the AIN0 pin
+                 ; 0000 019B // The Analog Comparator's negative input is
+                 ; 0000 019C // connected to the AIN1 pin
+                 ; 0000 019D ACSR=(1<<ACD) | (0<<ACBG) | (0<<ACO) | (0<<ACI) | (0<<ACIE) | (0<<ACIC) | (0<<ACIS1) | (0<<ACIS0);
+0000bb e8e0      	LDI  R30,LOW(128)
+0000bc b9e8      	OUT  0x8,R30
+                 ; 0000 019E // Digital input buffer on AIN0: On
+                 ; 0000 019F // Digital input buffer on AIN1: On
+                 ; 0000 01A0 DIDR0=(0<<ADC1D) | (0<<ADC2D);
+0000bd e0e0      	LDI  R30,LOW(0)
+0000be b9e1      	OUT  0x1,R30
+                 ; 0000 01A1 
+                 ; 0000 01A2 
+                 ; 0000 01A3 // ADC initialization
+                 ; 0000 01A4 // ADC Clock frequency: 1000.000 kHz
+                 ; 0000 01A5 // ADC Voltage Reference: AVCC pin
+                 ; 0000 01A6 // ADC Bipolar Input Mode: Off
+                 ; 0000 01A7 // ADC Auto Trigger Source: ADC Stopped
+                 ; 0000 01A8 // Digital input buffers on ADC0: Off, ADC1: On, ADC2: On, ADC3: On
+                 ; 0000 01A9 // ADC4: Off, ADC5: Off, ADC6: Off, ADC7: On
+                 ; 0000 01AA DIDR0=(0<<ADC7D) | (1<<ADC6D) | (1<<ADC5D) | (1<<ADC4D) | (0<<ADC3D) | (0<<ADC2D) | (0<<ADC1D) | (1<<ADC0D);
+0000bf e7e1      	LDI  R30,LOW(113)
+0000c0 b9e1      	OUT  0x1,R30
+                 ; 0000 01AB ADMUX=ADC_VREF_TYPE;
+0000c1 e0e0      	LDI  R30,LOW(0)
+0000c2 b9e7      	OUT  0x7,R30
+                 ; 0000 01AC ADCSRA=(1<<ADEN) | (0<<ADSC) | (0<<ADATE) | (0<<ADIF) | (0<<ADIE) | (0<<ADPS2) | (1<<ADPS1) | (1<<ADPS0);
+0000c3 e8e3      	LDI  R30,LOW(131)
+0000c4 b9e6      	OUT  0x6,R30
+                 ; 0000 01AD ADCSRB=(0<<BIN) | (0<<ADLAR) | (0<<ADTS2) | (0<<ADTS1) | (0<<ADTS0);
+0000c5 e0e0      	LDI  R30,LOW(0)
+0000c6 b9e3      	OUT  0x3,R30
+                 ; 0000 01AE 
+                 ; 0000 01AF 
+                 ; 0000 01B0 // Watchdog Timer initialization
+                 ; 0000 01B1 // Watchdog Timer Prescaler: OSC/2k
+                 ; 0000 01B2 // Watchdog timeout action: Reset
+                 ; 0000 01B3 //#pragma optsize-
+                 ; 0000 01B4 //WDTCSR=(0<<WDIF) | (0<<WDIE) | (0<<WDP3) | (1<<WDCE) | (1<<WDE) | (0<<WDP2) | (0<<WDP1) | (0<<WDP0);
+                 ; 0000 01B5 //WDTCSR=(0<<WDIF) | (0<<WDIE) | (0<<WDP3) | (0<<WDCE) | (1<<WDE) | (0<<WDP2) | (0<<WDP1) | (0<<WDP0);
+                 ; 0000 01B6 //#ifdef _OPTIMIZE_SIZE_
+                 ; 0000 01B7 //#pragma optsize+
+                 ; 0000 01B8 //#endif
+                 ; 0000 01B9 
+                 ; 0000 01BA // Global enable interrupts
+                 ; 0000 01BB 
+                 ; 0000 01BC #asm("sei")
+0000c7 9478      	sei
+                 ; 0000 01BD BUZZER_ON;
+0000c8 d03c      	RCALL SUBOPT_0x8
+                 ; 0000 01BE delay_ms(400);
+                 ; 0000 01BF BUZZER_OFF;
+                 ; 0000 01C0 delay_ms(400);
+                 ; 0000 01C1 BUZZER_ON;
+0000c9 d03b      	RCALL SUBOPT_0x8
+                 ; 0000 01C2 delay_ms(400);
+                 ; 0000 01C3 BUZZER_OFF;
+                 ; 0000 01C4 delay_ms(400);
+                 ; 0000 01C5 // Timer/Counter 1 Interrupt(s) initialization
+                 ; 0000 01C6 TIMSK1=(0<<ICIE1) | (0<<OCIE1B) | (0<<OCIE1A) | (1<<TOIE1);
+0000ca e0e1      	LDI  R30,LOW(1)
+0000cb b9ec      	OUT  0xC,R30
+                 ; 0000 01C7 
+                 ; 0000 01C8 	while (1)
+                 _0x32:
+                 ; 0000 01C9 	{
+                 ; 0000 01CA 		Control_ProtectPower();
+0000cc dfca      	RCALL _Control_ProtectPower
+                 ; 0000 01CB 	}
+0000cd cffe      	RJMP _0x32
+                 ; 0000 01CC }
+                 _0x35:
+0000ce cfff      	RJMP _0x35
                  ; .FEND
-                 
-                 	.DSEG
-                 _Uint_Current1_adc:
-000068           	.BYTE 0x14
-                 _Uint_Current2_adc:
-00007c           	.BYTE 0x14
-                 _Uint_Current3_adc:
-000090           	.BYTE 0x14
-                 _Uint_CurrentSet_adc:
-0000a4           	.BYTE 0x14
                  
                  	.CSEG
                  ;OPTIMIZER ADDED SUBROUTINE, CALLED 2 TIMES, CODE SIZE REDUCTION:1 WORDS
                  SUBOPT_0x0:
-00011c ecef      	LDI  R30,LOW(207)
-00011d bded      	OUT  0x2D,R30
-00011e e2ec      	LDI  R30,LOW(44)
-00011f bdec      	OUT  0x2C,R30
-000120 9508      	RET
+0000cf ecef      	LDI  R30,LOW(207)
+0000d0 bded      	OUT  0x2D,R30
+0000d1 e2ec      	LDI  R30,LOW(44)
+0000d2 bdec      	OUT  0x2C,R30
+0000d3 9508      	RET
                  
-                 ;OPTIMIZER ADDED SUBROUTINE, CALLED 9 TIMES, CODE SIZE REDUCTION:6 WORDS
+                 ;OPTIMIZER ADDED SUBROUTINE, CALLED 4 TIMES, CODE SIZE REDUCTION:4 WORDS
                  SUBOPT_0x1:
-000121 e0e0      	LDI  R30,LOW(0)
-000122 83ec      	STD  Y+4,R30
-000123 9508      	RET
+0000d4 df71      	RCALL _read_adc
+0000d5 2766      	CLR  R22
+0000d6 2777      	CLR  R23
+0000d7 9508      	RET
                  
-                 ;OPTIMIZER ADDED SUBROUTINE, CALLED 4 TIMES, CODE SIZE REDUCTION:1 WORDS
+                 ;OPTIMIZER ADDED SUBROUTINE, CALLED 2 TIMES, CODE SIZE REDUCTION:1 WORDS
                  SUBOPT_0x2:
-000124 0fee      	LSL  R30
-000125 0fea      	ADD  R30,R26
-000126 9508      	RET
+0000d8 d088      	RCALL __PUTD1S0
+0000d9 9508      	RET
                  
-                 ;OPTIMIZER ADDED SUBROUTINE, CALLED 3 TIMES, CODE SIZE REDUCTION:2 WORDS
+                 ;OPTIMIZER ADDED SUBROUTINE, CALLED 4 TIMES, CODE SIZE REDUCTION:7 WORDS
                  SUBOPT_0x3:
-000127 93ed      	ST   X+,R30
-000128 93fc      	ST   X,R31
-000129 2de3      	MOV  R30,R3
-00012a 9508      	RET
+0000da d081      	RCALL __GETD1S0
+0000db 9508      	RET
                  
-                 ;OPTIMIZER ADDED SUBROUTINE, CALLED 2 TIMES, CODE SIZE REDUCTION:8 WORDS
+                 ;OPTIMIZER ADDED SUBROUTINE, CALLED 4 TIMES, CODE SIZE REDUCTION:16 WORDS
                  SUBOPT_0x4:
-00012b 81ec      	LDD  R30,Y+4
-00012c eaa4      	LDI  R26,LOW(_Uint_CurrentSet_adc)
-00012d 0fee      	LSL  R30
-00012e 0fae      	ADD  R26,R30
-00012f d187      	RCALL __GETW1P
-000130 81a8      	LD   R26,Y
-000131 81b9      	LDD  R27,Y+1
-000132 0fea      	ADD  R30,R26
-000133 1ffb      	ADC  R31,R27
-000134 83e8      	ST   Y,R30
-000135 83f9      	STD  Y+1,R31
-000136 9508      	RET
-                 
-                 ;OPTIMIZER ADDED SUBROUTINE, CALLED 8 TIMES, CODE SIZE REDUCTION:12 WORDS
-                 SUBOPT_0x5:
-000137 81ec      	LDD  R30,Y+4
-000138 5fef      	SUBI R30,-LOW(1)
-000139 83ec      	STD  Y+4,R30
-00013a 9508      	RET
-                 
-                 ;OPTIMIZER ADDED SUBROUTINE, CALLED 4 TIMES, CODE SIZE REDUCTION:1 WORDS
-                 SUBOPT_0x6:
-00013b 81ec      	LDD  R30,Y+4
-00013c e0f0      	LDI  R31,0
-00013d 9508      	RET
-                 
-                 ;OPTIMIZER ADDED SUBROUTINE, CALLED 4 TIMES, CODE SIZE REDUCTION:1 WORDS
-                 SUBOPT_0x7:
-00013e 81a8      	LD   R26,Y
-00013f 81b9      	LDD  R27,Y+1
-000140 9508      	RET
-                 
-                 ;OPTIMIZER ADDED SUBROUTINE, CALLED 2 TIMES, CODE SIZE REDUCTION:4 WORDS
-                 SUBOPT_0x8:
-000141 d162      	RCALL __DIVW21U
-000142 83e8      	ST   Y,R30
-000143 83f9      	STD  Y+1,R31
-000144 dff9      	RCALL SUBOPT_0x7
-000145 34a8      	CPI  R26,LOW(0x348)
-000146 e0e3      	LDI  R30,HIGH(0x348)
-000147 07be      	CPC  R27,R30
-000148 9508      	RET
-                 
-                 ;OPTIMIZER ADDED SUBROUTINE, CALLED 4 TIMES, CODE SIZE REDUCTION:1 WORDS
-                 SUBOPT_0x9:
-000149 e4e8      	LDI  R30,LOW(840)
-00014a e0f3      	LDI  R31,HIGH(840)
-00014b 9508      	RET
-                 
-                 ;OPTIMIZER ADDED SUBROUTINE, CALLED 4 TIMES, CODE SIZE REDUCTION:1 WORDS
-                 SUBOPT_0xA:
-00014c 83e8      	ST   Y,R30
-00014d 83f9      	STD  Y+1,R31
-00014e 9508      	RET
-                 
-                 ;OPTIMIZER ADDED SUBROUTINE, CALLED 8 TIMES, CODE SIZE REDUCTION:5 WORDS
-                 SUBOPT_0xB:
-00014f 81e8      	LD   R30,Y
-000150 81f9      	LDD  R31,Y+1
-000151 9508      	RET
-                 
-                 ;OPTIMIZER ADDED SUBROUTINE, CALLED 8 TIMES, CODE SIZE REDUCTION:12 WORDS
-                 SUBOPT_0xC:
-000152 e0aa      	LDI  R26,LOW(10)
-000153 e0b0      	LDI  R27,HIGH(10)
-000154 d13f      	RCALL __MULW12U
-000155 9508      	RET
-                 
-                 ;OPTIMIZER ADDED SUBROUTINE, CALLED 2 TIMES, CODE SIZE REDUCTION:15 WORDS
-                 SUBOPT_0xD:
-000156 01df      	MOVW R26,R30
-000157 dff1      	RCALL SUBOPT_0x9
-000158 d14b      	RCALL __DIVW21U
-000159 2766      	CLR  R22
-00015a 2777      	CLR  R23
-00015b d0c6      	RCALL __CDF1
                 +
-00015c e0a0     +LDI R26 , LOW ( 0x41000000 )
-00015d e0b0     +LDI R27 , HIGH ( 0x41000000 )
-00015e e080     +LDI R24 , BYTE3 ( 0x41000000 )
-00015f e491     +LDI R25 , BYTE4 ( 0x41000000 )
-                 	__GETD2N 0x41000000
-000160 d0ef      	RCALL __MULF12
-000161 d087      	RCALL __CFD1U
-000162 2766      	CLR  R22
-000163 2777      	CLR  R23
-000164 5be0      	SUBI R30,LOW(-80)
-000165 4fff      	SBCI R31,HIGH(-80)
-000166 dfe5      	RCALL SUBOPT_0xA
-000167 cfb9      	RJMP SUBOPT_0x1
+0000dc e0aa     +LDI R26 , LOW ( 0xA )
+0000dd e0b0     +LDI R27 , HIGH ( 0xA )
+0000de e080     +LDI R24 , BYTE3 ( 0xA )
+0000df e090     +LDI R25 , BYTE4 ( 0xA )
+                 	__GETD2N 0xA
+0000e0 d036      	RCALL __MULD12U
+0000e1 01df      	MOVW R26,R30
+0000e2 01cb      	MOVW R24,R22
+0000e3 9508      	RET
                  
-                 ;OPTIMIZER ADDED SUBROUTINE, CALLED 2 TIMES, CODE SIZE REDUCTION:8 WORDS
-                 SUBOPT_0xE:
-000168 81ec      	LDD  R30,Y+4
-000169 e6a8      	LDI  R26,LOW(_Uint_Current1_adc)
-00016a 0fee      	LSL  R30
-00016b 0fae      	ADD  R26,R30
-00016c d14a      	RCALL __GETW1P
-00016d 81aa      	LDD  R26,Y+2
-00016e 81bb      	LDD  R27,Y+2+1
-00016f 0fea      	ADD  R30,R26
-000170 1ffb      	ADC  R31,R27
-000171 83ea      	STD  Y+2,R30
-000172 83fb      	STD  Y+2+1,R31
-000173 9508      	RET
+                 ;OPTIMIZER ADDED SUBROUTINE, CALLED 6 TIMES, CODE SIZE REDUCTION:13 WORDS
+                 SUBOPT_0x5:
+                +
+0000e4 83ec     +STD Y + 4 , R30
+0000e5 83fd     +STD Y + 4 + 1 , R31
+0000e6 836e     +STD Y + 4 + 2 , R22
+0000e7 837f     +STD Y + 4 + 3 , R23
+                 	__PUTD1S 4
+0000e8 9508      	RET
                  
-                 ;OPTIMIZER ADDED SUBROUTINE, CALLED 16 TIMES, CODE SIZE REDUCTION:13 WORDS
-                 SUBOPT_0xF:
-000174 81aa      	LDD  R26,Y+2
-000175 81bb      	LDD  R27,Y+2+1
-000176 9508      	RET
+                 ;OPTIMIZER ADDED SUBROUTINE, CALLED 3 TIMES, CODE SIZE REDUCTION:26 WORDS
+                 SUBOPT_0x6:
+                +
+0000e9 81ec     +LDD R30 , Y + 4
+0000ea 81fd     +LDD R31 , Y + 4 + 1
+0000eb 816e     +LDD R22 , Y + 4 + 2
+0000ec 817f     +LDD R23 , Y + 4 + 3
+                 	__GETD1S 4
+                +
+0000ed e0a5     +LDI R26 , LOW ( 0x5 )
+0000ee e0b0     +LDI R27 , HIGH ( 0x5 )
+0000ef e080     +LDI R24 , BYTE3 ( 0x5 )
+0000f0 e090     +LDI R25 , BYTE4 ( 0x5 )
+                 	__GETD2N 0x5
+0000f1 d025      	RCALL __MULD12U
+                +
+0000f2 e0a6     +LDI R26 , LOW ( 0x6 )
+0000f3 e0b0     +LDI R27 , HIGH ( 0x6 )
+0000f4 e080     +LDI R24 , BYTE3 ( 0x6 )
+0000f5 e090     +LDI R25 , BYTE4 ( 0x6 )
+                 	__GETD2N 0x6
+0000f6 d020      	RCALL __MULD12U
+0000f7 cfe4      	RJMP SUBOPT_0x4
                  
-                 ;OPTIMIZER ADDED SUBROUTINE, CALLED 6 TIMES, CODE SIZE REDUCTION:53 WORDS
-                 SUBOPT_0x10:
-000177 d12c      	RCALL __DIVW21U
-000178 83ea      	STD  Y+2,R30
-000179 83fb      	STD  Y+2+1,R31
-00017a e0a5      	LDI  R26,LOW(5)
-00017b e0b0      	LDI  R27,HIGH(5)
-00017c d117      	RCALL __MULW12U
-00017d e0a6      	LDI  R26,LOW(6)
-00017e e0b0      	LDI  R27,HIGH(6)
-00017f d114      	RCALL __MULW12U
-000180 cfd1      	RJMP SUBOPT_0xC
-                 
-                 ;OPTIMIZER ADDED SUBROUTINE, CALLED 6 TIMES, CODE SIZE REDUCTION:38 WORDS
-                 SUBOPT_0x11:
-000181 d108      	RCALL __LSRW2
-000182 2fef      	MOV  R30,R31
-000183 e0f0      	LDI  R31,0
-000184 83ea      	STD  Y+2,R30
-000185 83fb      	STD  Y+2+1,R31
-000186 dfc8      	RCALL SUBOPT_0xB
-000187 dfec      	RCALL SUBOPT_0xF
-000188 17ea      	CP   R30,R26
-000189 07fb      	CPC  R31,R27
-00018a 9508      	RET
-                 
-                 ;OPTIMIZER ADDED SUBROUTINE, CALLED 2 TIMES, CODE SIZE REDUCTION:7 WORDS
-                 SUBOPT_0x12:
-00018b 81ec      	LDD  R30,Y+4
-00018c e7ac      	LDI  R26,LOW(_Uint_Current2_adc)
-00018d 0fee      	LSL  R30
-00018e 0fae      	ADD  R26,R30
-00018f d127      	RCALL __GETW1P
-000190 dfe3      	RCALL SUBOPT_0xF
-000191 0fea      	ADD  R30,R26
-000192 1ffb      	ADC  R31,R27
-000193 83ea      	STD  Y+2,R30
-000194 83fb      	STD  Y+2+1,R31
-000195 9508      	RET
-                 
-                 ;OPTIMIZER ADDED SUBROUTINE, CALLED 2 TIMES, CODE SIZE REDUCTION:7 WORDS
-                 SUBOPT_0x13:
-000196 81ec      	LDD  R30,Y+4
-000197 e9a0      	LDI  R26,LOW(_Uint_Current3_adc)
-000198 0fee      	LSL  R30
-000199 0fae      	ADD  R26,R30
-00019a d11c      	RCALL __GETW1P
-00019b dfd8      	RCALL SUBOPT_0xF
-00019c 0fea      	ADD  R30,R26
-00019d 1ffb      	ADC  R31,R27
-00019e 83ea      	STD  Y+2,R30
-00019f 83fb      	STD  Y+2+1,R31
-0001a0 9508      	RET
-                 
-                 ;OPTIMIZER ADDED SUBROUTINE, CALLED 4 TIMES, CODE SIZE REDUCTION:1 WORDS
-                 SUBOPT_0x14:
-0001a1 81ac      	LDD  R26,Y+4
-0001a2 30aa      	CPI  R26,LOW(0xA)
-0001a3 9508      	RET
-                 
-                 ;OPTIMIZER ADDED SUBROUTINE, CALLED 4 TIMES, CODE SIZE REDUCTION:1 WORDS
-                 SUBOPT_0x15:
-0001a4 e0ea      	LDI  R30,LOW(10)
-0001a5 e0f0      	LDI  R31,HIGH(10)
-0001a6 9508      	RET
-                 
-                 ;OPTIMIZER ADDED SUBROUTINE, CALLED 3 TIMES, CODE SIZE REDUCTION:2 WORDS
-                 SUBOPT_0x16:
-0001a7 dfcc      	RCALL SUBOPT_0xF
-0001a8 dffb      	RCALL SUBOPT_0x15
-0001a9 cfcd      	RJMP SUBOPT_0x10
+                 ;OPTIMIZER ADDED SUBROUTINE, CALLED 3 TIMES, CODE SIZE REDUCTION:20 WORDS
+                 SUBOPT_0x7:
+                +
+0000f8 e0e0     +LDI R30 , LOW ( 0x400 )
+0000f9 e0f4     +LDI R31 , HIGH ( 0x400 )
+0000fa e060     +LDI R22 , BYTE3 ( 0x400 )
+0000fb e070     +LDI R23 , BYTE4 ( 0x400 )
+                 	__GETD1N 0x400
+0000fc d03a      	RCALL __DIVD21U
+0000fd dfe6      	RCALL SUBOPT_0x5
+0000fe dfdb      	RCALL SUBOPT_0x3
+                +
+0000ff 81ac     +LDD R26 , Y + 4
+000100 81bd     +LDD R27 , Y + 4 + 1
+000101 818e     +LDD R24 , Y + 4 + 2
+000102 819f     +LDD R25 , Y + 4 + 3
+                 	__GETD2S 4
+000103 d062      	RCALL __CPD12
+000104 9508      	RET
                  
                  ;OPTIMIZER ADDED SUBROUTINE, CALLED 2 TIMES, CODE SIZE REDUCTION:5 WORDS
-                 SUBOPT_0x17:
-0001aa 9ac0      	SBI  0x18,0
-0001ab e6a4      	LDI  R26,LOW(100)
-0001ac e0b0      	LDI  R27,0
-0001ad d004      	RCALL _delay_ms
-0001ae 98c0      	CBI  0x18,0
-0001af e6a4      	LDI  R26,LOW(100)
-0001b0 e0b0      	LDI  R27,0
-0001b1 c000      	RJMP _delay_ms
+                 SUBOPT_0x8:
+000105 9ac0      	SBI  0x18,0
+000106 e9a0      	LDI  R26,LOW(400)
+000107 e0b1      	LDI  R27,HIGH(400)
+000108 d004      	RCALL _delay_ms
+000109 98c0      	CBI  0x18,0
+00010a e9a0      	LDI  R26,LOW(400)
+00010b e0b1      	LDI  R27,HIGH(400)
+00010c c000      	RJMP _delay_ms
                  
                  
                  	.CSEG
                  _delay_ms:
-0001b2 9610      	adiw r26,0
-0001b3 f039      	breq __delay_ms1
+00010d 9610      	adiw r26,0
+00010e f039      	breq __delay_ms1
                  __delay_ms0:
                 +
-0001b4 ed80     +LDI R24 , LOW ( 0x7D0 )
-0001b5 e097     +LDI R25 , HIGH ( 0x7D0 )
+00010f ed80     +LDI R24 , LOW ( 0x7D0 )
+000110 e097     +LDI R25 , HIGH ( 0x7D0 )
                 +__DELAY_USW_LOOP :
-0001b6 9701     +SBIW R24 , 1
-0001b7 f7f1     +BRNE __DELAY_USW_LOOP
+000111 9701     +SBIW R24 , 1
+000112 f7f1     +BRNE __DELAY_USW_LOOP
                  	__DELAY_USW 0x7D0
-0001b8 95a8      	wdr
-0001b9 9711      	sbiw r26,1
-0001ba f7c9      	brne __delay_ms0
+000113 95a8      	wdr
+000114 9711      	sbiw r26,1
+000115 f7c9      	brne __delay_ms0
                  __delay_ms1:
-0001bb 9508      	ret
+000116 9508      	ret
                  
-                 __ROUND_REPACK:
-0001bc 2355      	TST  R21
-0001bd f442      	BRPL __REPACK
-0001be 3850      	CPI  R21,0x80
-0001bf f411      	BRNE __ROUND_REPACK0
-0001c0 ffe0      	SBRS R30,0
-0001c1 c004      	RJMP __REPACK
-                 __ROUND_REPACK0:
-0001c2 9631      	ADIW R30,1
-0001c3 1f69      	ADC  R22,R25
-0001c4 1f79      	ADC  R23,R25
-0001c5 f06b      	BRVS __REPACK1
+                 __MULD12U:
+000117 933f      	PUSH R19
+000118 934f      	PUSH R20
+000119 935f      	PUSH R21
+00011a e251      	LDI  R21,33
+00011b 2e0a      	MOV  R0,R26
+00011c 2e1b      	MOV  R1,R27
+00011d 2f38      	MOV  R19,R24
+00011e 2f49      	MOV  R20,R25
+00011f 27aa      	CLR  R26
+000120 27bb      	CLR  R27
+000121 2788      	CLR  R24
+000122 1b99      	SUB  R25,R25
+000123 c009      	RJMP __MULD12U1
+                 __MULD12U3:
+000124 f420      	BRCC __MULD12U2
+000125 0da0      	ADD  R26,R0
+000126 1db1      	ADC  R27,R1
+000127 1f83      	ADC  R24,R19
+000128 1f94      	ADC  R25,R20
+                 __MULD12U2:
+000129 9596      	LSR  R25
+00012a 9587      	ROR  R24
+00012b 95b7      	ROR  R27
+00012c 95a7      	ROR  R26
+                 __MULD12U1:
+00012d 9577      	ROR  R23
+00012e 9567      	ROR  R22
+00012f 95f7      	ROR  R31
+000130 95e7      	ROR  R30
+000131 955a      	DEC  R21
+000132 f789      	BRNE __MULD12U3
+000133 915f      	POP  R21
+000134 914f      	POP  R20
+000135 913f      	POP  R19
+000136 9508      	RET
                  
-                 __REPACK:
-0001c6 e850      	LDI  R21,0x80
-0001c7 2757      	EOR  R21,R23
-0001c8 f411      	BRNE __REPACK0
-0001c9 935f      	PUSH R21
-0001ca c073      	RJMP __ZERORES
-                 __REPACK0:
-0001cb 3f5f      	CPI  R21,0xFF
-0001cc f031      	BREQ __REPACK1
-0001cd 0f66      	LSL  R22
-0001ce 0c00      	LSL  R0
-0001cf 9557      	ROR  R21
-0001d0 9567      	ROR  R22
-0001d1 2f75      	MOV  R23,R21
-0001d2 9508      	RET
-                 __REPACK1:
-0001d3 935f      	PUSH R21
-0001d4 2000      	TST  R0
-0001d5 f00a      	BRMI __REPACK2
-0001d6 c073      	RJMP __MAXRES
-                 __REPACK2:
-0001d7 c06c      	RJMP __MINRES
+                 __DIVD21U:
+000137 933f      	PUSH R19
+000138 934f      	PUSH R20
+000139 935f      	PUSH R21
+00013a 2400      	CLR  R0
+00013b 2411      	CLR  R1
+00013c 2744      	CLR  R20
+00013d 2755      	CLR  R21
+00013e e230      	LDI  R19,32
+                 __DIVD21U1:
+00013f 0faa      	LSL  R26
+000140 1fbb      	ROL  R27
+000141 1f88      	ROL  R24
+000142 1f99      	ROL  R25
+000143 1c00      	ROL  R0
+000144 1c11      	ROL  R1
+000145 1f44      	ROL  R20
+000146 1f55      	ROL  R21
+000147 1a0e      	SUB  R0,R30
+000148 0a1f      	SBC  R1,R31
+000149 0b46      	SBC  R20,R22
+00014a 0b57      	SBC  R21,R23
+00014b f428      	BRCC __DIVD21U2
+00014c 0e0e      	ADD  R0,R30
+00014d 1e1f      	ADC  R1,R31
+00014e 1f46      	ADC  R20,R22
+00014f 1f57      	ADC  R21,R23
+000150 c001      	RJMP __DIVD21U3
+                 __DIVD21U2:
+000151 60a1      	SBR  R26,1
+                 __DIVD21U3:
+000152 953a      	DEC  R19
+000153 f759      	BRNE __DIVD21U1
+000154 01fd      	MOVW R30,R26
+000155 01bc      	MOVW R22,R24
+000156 01d0      	MOVW R26,R0
+000157 01ca      	MOVW R24,R20
+000158 915f      	POP  R21
+000159 914f      	POP  R20
+00015a 913f      	POP  R19
+00015b 9508      	RET
                  
-                 __UNPACK:
-0001d8 e850      	LDI  R21,0x80
-0001d9 2e19      	MOV  R1,R25
-0001da 2215      	AND  R1,R21
-0001db 0f88      	LSL  R24
-0001dc 1f99      	ROL  R25
-0001dd 2795      	EOR  R25,R21
-0001de 0f55      	LSL  R21
-0001df 9587      	ROR  R24
+                 __GETD1S0:
+00015c 81e8      	LD   R30,Y
+00015d 81f9      	LDD  R31,Y+1
+00015e 816a      	LDD  R22,Y+2
+00015f 817b      	LDD  R23,Y+3
+000160 9508      	RET
                  
-                 __UNPACK1:
-0001e0 e850      	LDI  R21,0x80
-0001e1 2e07      	MOV  R0,R23
-0001e2 2205      	AND  R0,R21
-0001e3 0f66      	LSL  R22
-0001e4 1f77      	ROL  R23
-0001e5 2775      	EOR  R23,R21
-0001e6 0f55      	LSL  R21
-0001e7 9567      	ROR  R22
-0001e8 9508      	RET
+                 __PUTD1S0:
+000161 83e8      	ST   Y,R30
+000162 83f9      	STD  Y+1,R31
+000163 836a      	STD  Y+2,R22
+000164 837b      	STD  Y+3,R23
+000165 9508      	RET
                  
-                 __CFD1U:
-0001e9 9468      	SET
-0001ea c001      	RJMP __CFD1U0
-                 __CFD1:
-0001eb 94e8      	CLT
-                 __CFD1U0:
-0001ec 935f      	PUSH R21
-0001ed dff2      	RCALL __UNPACK1
-0001ee 3870      	CPI  R23,0x80
-0001ef f018      	BRLO __CFD10
-0001f0 3f7f      	CPI  R23,0xFF
-0001f1 f408      	BRCC __CFD10
-0001f2 c04b      	RJMP __ZERORES
-                 __CFD10:
-0001f3 e156      	LDI  R21,22
-0001f4 1b57      	SUB  R21,R23
-0001f5 f4aa      	BRPL __CFD11
-0001f6 9551      	NEG  R21
-0001f7 3058      	CPI  R21,8
-0001f8 f40e      	BRTC __CFD19
-0001f9 3059      	CPI  R21,9
-                 __CFD19:
-0001fa f030      	BRLO __CFD17
-0001fb efef      	SER  R30
-0001fc efff      	SER  R31
-0001fd ef6f      	SER  R22
-0001fe e77f      	LDI  R23,0x7F
-0001ff f977      	BLD  R23,7
-000200 c01a      	RJMP __CFD15
-                 __CFD17:
-000201 2777      	CLR  R23
-000202 2355      	TST  R21
-000203 f0b9      	BREQ __CFD15
-                 __CFD18:
-000204 0fee      	LSL  R30
-000205 1fff      	ROL  R31
-000206 1f66      	ROL  R22
-000207 1f77      	ROL  R23
-000208 955a      	DEC  R21
-000209 f7d1      	BRNE __CFD18
-00020a c010      	RJMP __CFD15
-                 __CFD11:
-00020b 2777      	CLR  R23
-                 __CFD12:
-00020c 3058      	CPI  R21,8
-00020d f028      	BRLO __CFD13
-00020e 2fef      	MOV  R30,R31
-00020f 2ff6      	MOV  R31,R22
-000210 2f67      	MOV  R22,R23
-000211 5058      	SUBI R21,8
-000212 cff9      	RJMP __CFD12
-                 __CFD13:
-000213 2355      	TST  R21
-000214 f031      	BREQ __CFD15
-                 __CFD14:
-000215 9576      	LSR  R23
-000216 9567      	ROR  R22
-000217 95f7      	ROR  R31
-000218 95e7      	ROR  R30
-000219 955a      	DEC  R21
-00021a f7d1      	BRNE __CFD14
-                 __CFD15:
-00021b 2000      	TST  R0
-00021c f40a      	BRPL __CFD16
-00021d d064      	RCALL __ANEGD1
-                 __CFD16:
-00021e 915f      	POP  R21
-00021f 9508      	RET
+                 __CPD12:
+000166 17ea      	CP   R30,R26
+000167 07fb      	CPC  R31,R27
+000168 0768      	CPC  R22,R24
+000169 0779      	CPC  R23,R25
+00016a 9508      	RET
                  
-                 __CDF1U:
-000220 9468      	SET
-000221 c001      	RJMP __CDF1U0
-                 __CDF1:
-000222 94e8      	CLT
-                 __CDF1U0:
-000223 9730      	SBIW R30,0
-000224 4060      	SBCI R22,0
-000225 4070      	SBCI R23,0
-000226 f0b1      	BREQ __CDF10
-000227 2400      	CLR  R0
-000228 f026      	BRTS __CDF11
-000229 2377      	TST  R23
-00022a f412      	BRPL __CDF11
-00022b 9400      	COM  R0
-00022c d055      	RCALL __ANEGD1
-                 __CDF11:
-00022d 2e17      	MOV  R1,R23
-00022e e17e      	LDI  R23,30
-00022f 2011      	TST  R1
-                 __CDF12:
-000230 f032      	BRMI __CDF13
-000231 957a      	DEC  R23
-000232 0fee      	LSL  R30
-000233 1fff      	ROL  R31
-000234 1f66      	ROL  R22
-000235 1c11      	ROL  R1
-000236 cff9      	RJMP __CDF12
-                 __CDF13:
-000237 2fef      	MOV  R30,R31
-000238 2ff6      	MOV  R31,R22
-000239 2d61      	MOV  R22,R1
-00023a 935f      	PUSH R21
-00023b df8a      	RCALL __REPACK
-00023c 915f      	POP  R21
-                 __CDF10:
-00023d 9508      	RET
-                 
-                 __ZERORES:
-00023e 27ee      	CLR  R30
-00023f 27ff      	CLR  R31
-000240 2766      	CLR  R22
-000241 2777      	CLR  R23
-000242 915f      	POP  R21
-000243 9508      	RET
-                 
-                 __MINRES:
-000244 efef      	SER  R30
-000245 efff      	SER  R31
-000246 e76f      	LDI  R22,0x7F
-000247 ef7f      	SER  R23
-000248 915f      	POP  R21
-000249 9508      	RET
-                 
-                 __MAXRES:
-00024a efef      	SER  R30
-00024b efff      	SER  R31
-00024c e76f      	LDI  R22,0x7F
-00024d e77f      	LDI  R23,0x7F
-00024e 915f      	POP  R21
-00024f 9508      	RET
-                 
-                 __MULF12:
-000250 935f      	PUSH R21
-000251 df86      	RCALL __UNPACK
-000252 3870      	CPI  R23,0x80
-000253 f351      	BREQ __ZERORES
-000254 3890      	CPI  R25,0x80
-000255 f341      	BREQ __ZERORES
-000256 2401      	EOR  R0,R1
-000257 9408      	SEC
-000258 1f79      	ADC  R23,R25
-000259 f423      	BRVC __MULF124
-00025a f31c      	BRLT __ZERORES
-                 __MULF125:
-00025b 2000      	TST  R0
-00025c f33a      	BRMI __MINRES
-00025d cfec      	RJMP __MAXRES
-                 __MULF124:
-00025e 933f      	PUSH R19
-00025f 934f      	PUSH R20
-000260 2411      	CLR  R1
-000261 2733      	CLR  R19
-000262 2744      	CLR  R20
-000263 2755      	CLR  R21
-000264 e198      	LDI  R25,24
-                 __MULF120:
-000265 0f33      	LSL  R19
-000266 1f44      	ROL  R20
-000267 1f55      	ROL  R21
-000268 1fee      	ROL  R30
-000269 1fff      	ROL  R31
-00026a 1f66      	ROL  R22
-00026b f430      	BRCC __MULF121
-00026c 0f3a      	ADD  R19,R26
-00026d 1f4b      	ADC  R20,R27
-00026e 1f58      	ADC  R21,R24
-00026f 1de1      	ADC  R30,R1
-000270 1df1      	ADC  R31,R1
-000271 1d61      	ADC  R22,R1
-                 __MULF121:
-000272 959a      	DEC  R25
-000273 f789      	BRNE __MULF120
-000274 914f      	POP  R20
-000275 913f      	POP  R19
-000276 2366      	TST  R22
-000277 f02a      	BRMI __MULF122
-000278 0f55      	LSL  R21
-000279 1fee      	ROL  R30
-00027a 1fff      	ROL  R31
-00027b 1f66      	ROL  R22
-00027c c002      	RJMP __MULF123
-                 __MULF122:
-00027d 9573      	INC  R23
-00027e f2e3      	BRVS __MULF125
-                 __MULF123:
-00027f df3c      	RCALL __ROUND_REPACK
-000280 915f      	POP  R21
-000281 9508      	RET
-                 
-                 __ANEGD1:
-000282 95f0      	COM  R31
-000283 9560      	COM  R22
-000284 9570      	COM  R23
-000285 95e1      	NEG  R30
-000286 4fff      	SBCI R31,-1
-000287 4f6f      	SBCI R22,-1
-000288 4f7f      	SBCI R23,-1
-000289 9508      	RET
-                 
-                 __LSRW2:
-00028a 95f6      	LSR  R31
-00028b 95e7      	ROR  R30
-00028c 95f6      	LSR  R31
-00028d 95e7      	ROR  R30
-00028e 9508      	RET
-                 
-                 __CWD1:
-00028f 2f6f      	MOV  R22,R31
-000290 0f66      	ADD  R22,R22
-000291 0b66      	SBC  R22,R22
-000292 2f76      	MOV  R23,R22
-000293 9508      	RET
-                 
-                 __MULW12U:
-000294 2e0a      	MOV  R0,R26
-000295 2e1b      	MOV  R1,R27
-000296 e181      	LDI  R24,17
-000297 27aa      	CLR  R26
-000298 1bbb      	SUB  R27,R27
-000299 c005      	RJMP __MULW12U1
-                 __MULW12U3:
-00029a f410      	BRCC __MULW12U2
-00029b 0da0      	ADD  R26,R0
-00029c 1db1      	ADC  R27,R1
-                 __MULW12U2:
-00029d 95b6      	LSR  R27
-00029e 95a7      	ROR  R26
-                 __MULW12U1:
-00029f 95f7      	ROR  R31
-0002a0 95e7      	ROR  R30
-0002a1 958a      	DEC  R24
-0002a2 f7b9      	BRNE __MULW12U3
-0002a3 9508      	RET
-                 
-                 __DIVW21U:
-0002a4 2400      	CLR  R0
-0002a5 2411      	CLR  R1
-0002a6 e190      	LDI  R25,16
-                 __DIVW21U1:
-0002a7 0faa      	LSL  R26
-0002a8 1fbb      	ROL  R27
-0002a9 1c00      	ROL  R0
-0002aa 1c11      	ROL  R1
-0002ab 1a0e      	SUB  R0,R30
-0002ac 0a1f      	SBC  R1,R31
-0002ad f418      	BRCC __DIVW21U2
-0002ae 0e0e      	ADD  R0,R30
-0002af 1e1f      	ADC  R1,R31
-0002b0 c001      	RJMP __DIVW21U3
-                 __DIVW21U2:
-0002b1 60a1      	SBR  R26,1
-                 __DIVW21U3:
-0002b2 959a      	DEC  R25
-0002b3 f799      	BRNE __DIVW21U1
-0002b4 01fd      	MOVW R30,R26
-0002b5 01d0      	MOVW R26,R0
-0002b6 9508      	RET
-                 
-                 __GETW1P:
-0002b7 91ed      	LD   R30,X+
-0002b8 91fc      	LD   R31,X
-0002b9 95aa      	DEC  R26
-0002ba 9508      	RET
+                 __INITLOCB:
+                 __INITLOCW:
+00016b 0fac      	ADD  R26,R28
+                 __INITLOC0:
+00016c 9005      	LPM  R0,Z+
+00016d 920d      	ST   X+,R0
+00016e 958a      	DEC  R24
+00016f f7e1      	BRNE __INITLOC0
+000170 9508      	RET
                  
                  ;END OF CODE MARKER
                  __END_OF_CODE:
@@ -2368,41 +2008,41 @@ counted separately from r26..r31 here.
 .dseg memory usage only counts static data declared with .byte
 
 ATtiny24A register use summary:
-r0 :  16 r1 :  17 r2 :   0 r3 :   9 r4 :   0 r5 :   0 r6 :   0 r7 :   0 
+r0 :   9 r1 :   6 r2 :   0 r3 :   4 r4 :   6 r5 :   0 r6 :   0 r7 :   0 
 r8 :   0 r9 :   0 r10:   0 r11:   0 r12:   0 r13:   0 r14:   0 r15:   0 
-r16:   0 r17:   6 r18:   0 r19:   5 r20:   5 r21:  41 r22:  31 r23:  32 
-r24:  14 r25:  13 r26:  63 r27:  23 r28:   5 r29:   0 r30: 153 r31:  46 
-x  :   8 y  :  49 z  :   0 
-Registers used: 18 out of 35 (51.4%)
+r16:   0 r17:   4 r18:   0 r19:   8 r20:  11 r21:  10 r22:  14 r23:  12 
+r24:  24 r25:  13 r26:  28 r27:  13 r28:   5 r29:   0 r30:  92 r31:  13 
+x  :   3 y  :  28 z  :   1 
+Registers used: 20 out of 35 (57.1%)
 
 ATtiny24A instruction use summary:
-.lds  :   0 .lds.l:   0 .sts  :   0 .sts.l:   0 adc   :  14 add   :  13 
-adiw  :   5 and   :   2 andi  :   1 asr   :   0 bclr  :   0 bld   :   1 
-brbc  :   0 brbs  :   0 brcc  :   4 brcs  :   0 break :   0 breq  :   7 
-brge  :   0 brhc  :   0 brhs  :   0 brid  :   0 brie  :   0 brlo  :   7 
-brlt  :   1 brmi  :   4 brne  :  14 brpl  :   4 brsh  :  13 brtc  :   1 
-brts  :   1 brvc  :   1 brvs  :   2 bset  :   0 bst   :   0 cbi   :   4 
-cbr   :   0 clc   :   0 clh   :   0 cli   :   1 cln   :   0 clr   :  20 
-cls   :   0 clt   :   2 clv   :   0 clz   :   0 com   :   4 cp    :   6 
-cpc   :   2 cpi   :  13 cpse  :   0 dec   :  10 des   :   0 eor   :   4 
-fmul  :   0 fmuls :   0 fmulsu:   0 icall :   0 ijmp  :   0 in    :   2 
-inc   :   2 ld    :   8 ldd   :  18 ldi   :  83 lds   :   0 lpm   :   0 
-lsl   :  16 lsr   :   4 mov   :  18 movw  :   3 mul   :   0 muls  :   0 
-mulsu :   0 neg   :   2 nop   :   0 or    :   0 ori   :   0 out   :  39 
-pop   :  12 push  :  11 rcall : 108 ret   :  39 reti  :   1 rjmp  :  58 
-rol   :  19 ror   :  12 sbc   :   2 sbci  :   6 sbi   :   7 sbic  :   1 
-sbis  :   2 sbiw  :   4 sbr   :   1 sbrc  :   0 sbrs  :   1 sec   :   1 
-seh   :   0 sei   :   1 sen   :   0 ser   :   8 ses   :   0 set   :   2 
-sev   :   0 sez   :   0 sleep :   0 spm   :   0 st    :  13 std   :  18 
-sts   :   0 sub   :   3 subi  :   3 swap  :   0 tst   :   9 wdr   :   1 
+.lds  :   0 .lds.l:   0 .sts  :   0 .sts.l:   0 adc   :   6 add   :   3 
+adiw  :   3 and   :   0 andi  :   1 asr   :   0 bclr  :   0 bld   :   0 
+brbc  :   0 brbs  :   0 brcc  :   2 brcs  :   0 break :   0 breq  :   1 
+brge  :   0 brhc  :   0 brhs  :   0 brid  :   0 brie  :   0 brlo  :   1 
+brlt  :   0 brmi  :   0 brne  :   8 brpl  :   0 brsh  :   5 brtc  :   0 
+brts  :   0 brvc  :   0 brvs  :   0 bset  :   0 bst   :   0 cbi   :   6 
+cbr   :   0 clc   :   0 clh   :   0 cli   :   1 cln   :   0 clr   :  14 
+cls   :   0 clt   :   0 clv   :   0 clz   :   0 com   :   0 cp    :   4 
+cpc   :   3 cpi   :   0 cpse  :   0 dec   :   6 des   :   0 eor   :   0 
+fmul  :   0 fmuls :   0 fmulsu:   0 icall :   0 ijmp  :   0 in    :   3 
+inc   :   2 ld    :   5 ldd   :  11 ldi   :  69 lds   :   0 lpm   :   1 
+lsl   :   1 lsr   :   1 mov   :   6 movw  :   6 mul   :   0 muls  :   0 
+mulsu :   0 neg   :   0 nop   :   0 or    :   0 ori   :   0 out   :  40 
+pop   :   6 push  :   6 rcall :  37 ret   :  17 reti  :   1 rjmp  :  32 
+rol   :   7 ror   :   7 sbc   :   3 sbci  :   3 sbi   :   9 sbic  :   0 
+sbis  :   3 sbiw  :   3 sbr   :   1 sbrc  :   0 sbrs  :   0 sec   :   0 
+seh   :   0 sei   :   1 sen   :   0 ser   :   0 ses   :   0 set   :   0 
+sev   :   0 sez   :   0 sleep :   0 spm   :   0 st    :   8 std   :   7 
+sts   :   0 sub   :   2 subi  :   1 swap  :   0 tst   :   0 wdr   :   1 
 
-Instructions used: 65 out of 114 (57.0%)
+Instructions used: 46 out of 114 (40.4%)
 
 ATtiny24A memory use summary [bytes]:
 Segment   Begin    End      Code   Data   Used    Size   Use%
 ---------------------------------------------------------------
-[.cseg] 0x000000 0x000576   1398      0   1398    2048  68.3%
-[.dseg] 0x000060 0x0000b8      0     80     80     128  62.5%
+[.cseg] 0x000000 0x0002e2    728     10    738    2048  36.0%
+[.dseg] 0x000060 0x00006d      0      0      0     128   0.0%
 [.eseg] 0x000000 0x000000      0      0      0     128   0.0%
 
-Assembly complete, 0 errors, 1 warnings
+Assembly complete, 0 errors, 3 warnings

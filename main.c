@@ -37,7 +37,7 @@ Data Stack size         : 8
 #define	current_scale	6
 
 /* Gia tri dong dien cai dat */
-#define	CURRENT_SET_MAX	16
+#define	CURRENT_SET_MAX	20
 #define	CURRENT_SET_MIN	8
 
 /* Gia tri max co the doc duoc tu VR_set */
@@ -63,10 +63,13 @@ unsigned int	AI10_Current_L2[num_sample];
 unsigned int	AI10_Current_L3[num_sample];
 unsigned int	AI10_SetCurrent_VR1[num_sample];
 unsigned char	Uchar_Sample_count;
+unsigned char	Uchar_Timer_count;
 
 bit	Bit_AdcSample_full = 0;
 
 bit	Bit_TimerOverflow = 0;
+
+bit Bit_warning = 0;
 
 /*-----------------------------------------------------*/
 // Timer1 overflow interrupt service routine
@@ -77,6 +80,22 @@ interrupt [TIM1_OVF] void timer1_ovf_isr(void)
 	TCNT1H=0xCF2C >> 8;
 	TCNT1L=0xCF2C & 0xff;
 	Bit_TimerOverflow = 1;
+	Uchar_Timer_count++;
+	if(Uchar_Timer_count>= 10)
+	{
+		Uchar_Timer_count = 0;
+	}	
+	if(Bit_warning == 1)
+	{
+		RELAY_ON;
+		if(Uchar_Timer_count < 5)	BUZZER_ON;
+		else	BUZZER_OFF;
+	}
+	else 
+	{
+		BUZZER_OFF;
+		RELAY_OFF;
+	}
 }
 
 
@@ -112,98 +131,154 @@ unsigned char	Read_value_current(void)
 	if(Bit_TimerOverflow)
 	{
 		unsigned char	Uchar_loop_cnt = 0;
-		unsigned int	Uint_Current_value = 0;
-		unsigned int	Uint_CurrentSet_value = 0; 
-        
-		Bit_TimerOverflow = 0;
-		
-		AI10_Current_L1[Uchar_Sample_count] = read_adc(ADC_current_L1);
-		AI10_Current_L2[Uchar_Sample_count] = read_adc(ADC_current_L2);
-		AI10_Current_L3[Uchar_Sample_count] = read_adc(ADC_current_L3);
-		AI10_SetCurrent_VR1[Uchar_Sample_count] = read_adc(ADC_current_set); 
+		unsigned long	Uint_Current_value = 0;
+		unsigned long	Uint_CurrentSet_value = 0; 
 
-		Uchar_Sample_count++;
-		if(Uchar_Sample_count >= num_sample)	
+		Uint_CurrentSet_value = read_adc(ADC_current_set);
+		Uint_CurrentSet_value = ((Uint_CurrentSet_value*10/CURRENT_SET_ADC_VALUE_MAX)*(CURRENT_SET_MAX - CURRENT_SET_MIN)) + CURRENT_SET_MIN*10;
+
+		Uint_Current_value = read_adc(ADC_current_L1);
+		Uint_Current_value = Uint_Current_value*5*current_scale*10/1024;
+		if(Uint_Current_value > Uint_CurrentSet_value)	
 		{
+			Bit_warning = 1;
 			Uchar_Sample_count = 0;
-			Bit_AdcSample_full = 1;
-		} 
-
-		/* So mau lay duoc chua dat du num_sample (10) */
-		if(Bit_AdcSample_full == 0)
-		{         
-			/* tinh trung binh gia tri dien ap set doc duoc */
-            for(Uchar_loop_cnt = 0; Uchar_loop_cnt < Uchar_Sample_count; Uchar_loop_cnt++)
+			//return Err;
+		}
+		else
+		{
+			Uint_Current_value = read_adc(ADC_current_L2);
+			Uint_Current_value = Uint_Current_value*5*current_scale*10/1024;
+			if(Uint_Current_value > Uint_CurrentSet_value)
 			{
-				Uint_CurrentSet_value += AI10_SetCurrent_VR1[Uchar_loop_cnt];
+				Bit_warning = 1;
+				Uchar_Sample_count = 0;
+				//return Err;
 			}
-			Uint_CurrentSet_value /= Uchar_loop_cnt;  
-			if(Uint_CurrentSet_value >= CURRENT_SET_ADC_VALUE_MAX)	Uint_CurrentSet_value = CURRENT_SET_ADC_VALUE_MAX;
-			Uint_CurrentSet_value = (unsigned int)((float)(Uint_CurrentSet_value*10/CURRENT_SET_ADC_VALUE_MAX)*(CURRENT_SET_MAX - CURRENT_SET_MIN)) + CURRENT_SET_MIN*10;
+			else
+			{
+				Uint_Current_value = read_adc(ADC_current_L3);
+				Uint_Current_value = Uint_Current_value*5*current_scale*10/1024;
+				if(Uint_Current_value > Uint_CurrentSet_value)
+				{
+					Bit_warning = 1;
+					Uchar_Sample_count = 0;
+					//return Err;
+				}
+				else
+				{
+					Uchar_Sample_count++;
+					if(Uchar_Sample_count > 10)		
+					{
+						Bit_warning = 0;
+						Uchar_Sample_count = 6;
+					}
+					//return Ok;
+				}
+			}
+		}
+		Bit_TimerOverflow = 0;
+
+		
+		// AI10_Current_L1[Uchar_Sample_count] = read_adc(ADC_current_L1);
+		// AI10_Current_L2[Uchar_Sample_count] = read_adc(ADC_current_L2);
+		// AI10_Current_L3[Uchar_Sample_count] = read_adc(ADC_current_L3);
+
+		// AI10_SetCurrent_VR1[Uchar_Sample_count] = read_adc(ADC_current_set); 
+
+		// Uchar_Sample_count++;
+		// if(Uchar_Sample_count >= num_sample)	
+		// {
+		// 	Uchar_Sample_count = 0;
+		// 	Bit_AdcSample_full = 1;
+		// } 
+
+		// /* So mau lay duoc chua dat du num_sample (10) */
+		// if(Bit_AdcSample_full == 0)
+		// {         
+		// 	/* tinh trung binh gia tri dien ap set doc duoc */
+		// 	Uint_CurrentSet_value = 0;
+        //     for(Uchar_loop_cnt = 0; Uchar_loop_cnt < Uchar_Sample_count; Uchar_loop_cnt++)
+		// 	{
+		// 		Uint_CurrentSet_value += AI10_SetCurrent_VR1[Uchar_loop_cnt];
+		// 	}
+		// 	Uint_CurrentSet_value /= Uchar_loop_cnt;  
+		// 	if(Uint_CurrentSet_value >= CURRENT_SET_ADC_VALUE_MAX)	Uint_CurrentSet_value = CURRENT_SET_ADC_VALUE_MAX;
+		// 	Uint_CurrentSet_value = ((Uint_CurrentSet_value*10/CURRENT_SET_ADC_VALUE_MAX)*(CURRENT_SET_MAX - CURRENT_SET_MIN)) + CURRENT_SET_MIN*10;
                            
            
-            /* TInh trung binh gia tri dien ap doc duoc tu L1 */ 
-			for(Uchar_loop_cnt = 0; Uchar_loop_cnt < Uchar_Sample_count; Uchar_loop_cnt++)
-			{
-				Uint_Current_value += AI10_Current_L1[Uchar_loop_cnt];
-			}
-			Uint_Current_value /= Uchar_loop_cnt; 
-			Uint_Current_value = Uint_Current_value*5*current_scale*10/1024;
-			if(Uint_Current_value > Uint_CurrentSet_value)	return Err;
+        //     /* TInh trung binh gia tri dien ap doc duoc tu L1 */ 
+		// 	Uint_Current_value = 0;
+		// 	for(Uchar_loop_cnt = 0; Uchar_loop_cnt < Uchar_Sample_count; Uchar_loop_cnt++)
+		// 	{
+		// 		Uint_Current_value += AI10_Current_L1[Uchar_loop_cnt];
+		// 	}
+		// 	Uint_Current_value /= Uchar_loop_cnt; 
+		// 	Uint_Current_value = Uint_Current_value*5*current_scale*10/1024;
+		// 	if(Uint_Current_value > Uint_CurrentSet_value)	return Err;
 			
-			/* TInh trung binh gia tri dien ap doc duoc tu L2 */ 
-			for(Uchar_loop_cnt = 0; Uchar_loop_cnt < Uchar_Sample_count; Uchar_loop_cnt++)
-			{
-				Uint_Current_value += AI10_Current_L2[Uchar_loop_cnt];
-			}
-			Uint_Current_value /= Uchar_loop_cnt; 
-			Uint_Current_value = Uint_Current_value*5*current_scale*10/1024;
-			if(Uint_Current_value > Uint_CurrentSet_value)	return Err;
+		// 	/* TInh trung binh gia tri dien ap doc duoc tu L2 */ 
+		// 	Uint_Current_value = 0;
+		// 	for(Uchar_loop_cnt = 0; Uchar_loop_cnt < Uchar_Sample_count; Uchar_loop_cnt++)
+		// 	{
+		// 		Uint_Current_value += AI10_Current_L2[Uchar_loop_cnt];
+		// 	}
+		// 	Uint_Current_value /= Uchar_loop_cnt; 
+		// 	Uint_Current_value = Uint_Current_value*5*current_scale*10/1024;
+		// 	if(Uint_Current_value > Uint_CurrentSet_value)	return Err;
 			
-			/* TInh trung binh gia tri dien ap doc duoc tu L3 */ 
-			for(Uchar_loop_cnt = 0; Uchar_loop_cnt <= Uchar_Sample_count; Uchar_loop_cnt++)
-			{
-				Uint_Current_value += AI10_Current_L3[Uchar_loop_cnt];
-			}
-			Uint_Current_value /= Uchar_loop_cnt; 
-			Uint_Current_value = Uint_Current_value*5*current_scale*10/1024;
-			if(Uint_Current_value > Uint_CurrentSet_value)	return Err;
-        }
-		else /* So mau da duoc lay du num_sample*/
-		{
-			for(Uchar_loop_cnt = 0; Uchar_loop_cnt < num_sample; Uchar_loop_cnt++)
-			{
-				Uint_CurrentSet_value += AI10_SetCurrent_VR1[Uchar_loop_cnt];
-			}
-			Uint_CurrentSet_value /= num_sample;
-			if(Uint_CurrentSet_value >= CURRENT_SET_ADC_VALUE_MAX)	Uint_CurrentSet_value = CURRENT_SET_ADC_VALUE_MAX;
-			Uint_CurrentSet_value = (unsigned int)((float)(Uint_CurrentSet_value*10/CURRENT_SET_ADC_VALUE_MAX)*(CURRENT_SET_MAX - CURRENT_SET_MIN)) + CURRENT_SET_MIN*10;
+		// 	/* TInh trung binh gia tri dien ap doc duoc tu L3 */ 
+		// 	Uint_Current_value = 0;
+		// 	for(Uchar_loop_cnt = 0; Uchar_loop_cnt <= Uchar_Sample_count; Uchar_loop_cnt++)
+		// 	{
+		// 		Uint_Current_value += AI10_Current_L3[Uchar_loop_cnt];
+		// 	}
+		// 	Uint_Current_value /= Uchar_loop_cnt; 
+		// 	Uint_Current_value = Uint_Current_value*5*current_scale*10/1024;
+		// 	if(Uint_Current_value > Uint_CurrentSet_value)	return Err;
 
-			for(Uchar_loop_cnt = 0; Uchar_loop_cnt < num_sample; Uchar_loop_cnt++)
-			{
-				Uint_Current_value += AI10_Current_L1[Uchar_loop_cnt];
-			}
-			Uint_Current_value /=num_sample; 
-			Uint_Current_value = Uint_Current_value*5*current_scale*10/1024;
-			if(Uint_Current_value > Uint_CurrentSet_value)	return Err;
+		// 	return Ok;
+        // }
+		// else /* So mau da duoc lay du num_sample*/
+		// {
+		// 	Uint_CurrentSet_value = 0;
+		// 	for(Uchar_loop_cnt = 0; Uchar_loop_cnt < num_sample; Uchar_loop_cnt++)
+		// 	{
+		// 		Uint_CurrentSet_value += AI10_SetCurrent_VR1[Uchar_loop_cnt];
+		// 	}
+		// 	Uint_CurrentSet_value /= num_sample;
+		// 	if(Uint_CurrentSet_value >= CURRENT_SET_ADC_VALUE_MAX)	Uint_CurrentSet_value = CURRENT_SET_ADC_VALUE_MAX;
+		// 	Uint_CurrentSet_value = ((Uint_CurrentSet_value*10/CURRENT_SET_ADC_VALUE_MAX)*(CURRENT_SET_MAX - CURRENT_SET_MIN)) + CURRENT_SET_MIN*10;
+
+		// 	Uint_Current_value = 0;
+		// 	for(Uchar_loop_cnt = 0; Uchar_loop_cnt < num_sample; Uchar_loop_cnt++)
+		// 	{
+		// 		Uint_Current_value += AI10_Current_L1[Uchar_loop_cnt];
+		// 	}
+		// 	Uint_Current_value /=num_sample; 
+		// 	Uint_Current_value = Uint_Current_value*5*current_scale*10/1024;
+		// 	if(Uint_Current_value > Uint_CurrentSet_value)	return Err;
 			
-			for(Uchar_loop_cnt = 0; Uchar_loop_cnt < num_sample; Uchar_loop_cnt++)
-			{
-				Uint_Current_value += AI10_Current_L2[Uchar_loop_cnt];
-			}
-			Uint_Current_value /=num_sample; 
-			Uint_Current_value = Uint_Current_value*5*current_scale*10/1024;
-			if(Uint_Current_value > Uint_CurrentSet_value)	return Err;
+		// 	Uint_Current_value = 0;
+		// 	for(Uchar_loop_cnt = 0; Uchar_loop_cnt < num_sample; Uchar_loop_cnt++)
+		// 	{
+		// 		Uint_Current_value += AI10_Current_L2[Uchar_loop_cnt];
+		// 	}
+		// 	Uint_Current_value /=num_sample; 
+		// 	Uint_Current_value = Uint_Current_value*5*current_scale*10/1024;
+		// 	if(Uint_Current_value > Uint_CurrentSet_value)	return Err;
 			
-			for(Uchar_loop_cnt = 0; Uchar_loop_cnt < num_sample; Uchar_loop_cnt++)
-			{
-				Uint_Current_value += AI10_Current_L3[Uchar_loop_cnt];
-			}
-			Uint_Current_value /= num_sample; 
-			Uint_Current_value = Uint_Current_value*5*current_scale*10/1024;
-			if(Uint_Current_value > Uint_CurrentSet_value)	return Err;	
-		}
-		return Ok;
+		// 	Uint_Current_value = 0;
+		// 	for(Uchar_loop_cnt = 0; Uchar_loop_cnt < num_sample; Uchar_loop_cnt++)
+		// 	{
+		// 		Uint_Current_value += AI10_Current_L3[Uchar_loop_cnt];
+		// 	}
+		// 	Uint_Current_value /= num_sample; 
+		// 	Uint_Current_value = Uint_Current_value*5*current_scale*10/1024;
+		// 	if(Uint_Current_value > Uint_CurrentSet_value)	return Err;	
+
+		// 	return Ok;
+		// }		
 	}
 	return Processing;
 }
@@ -218,16 +293,15 @@ void	Control_ProtectPower(void)
 {
 	unsigned char	Uchar_respone = Processing;
 	Uchar_respone = Read_value_current();
-	if(Uchar_respone == Err)
-	{
-		BUZZER_ON;
-		RELAY_ON;
-	}
-	else if(Uchar_respone == Ok)
-	{
-		BUZZER_OFF;
-		RELAY_OFF;
-	}
+	//Bit_warning = 1;
+	// if(Uchar_respone == Err)
+	// {
+	// 	Bit_warning = 1;
+	// }
+	// else if(Uchar_respone == Ok)
+	// {
+	// 	Bit_warning = 0;
+	// }
 }
 
 void main(void)
@@ -314,8 +388,8 @@ OCR1BL=0x00;
 // Timer/Counter 0 Interrupt(s) initialization
 TIMSK0=(0<<OCIE0B) | (0<<OCIE0A) | (0<<TOIE0);
 
-// Timer/Counter 1 Interrupt(s) initialization
-TIMSK1=(0<<ICIE1) | (0<<OCIE1B) | (0<<OCIE1A) | (1<<TOIE1);
+// // Timer/Counter 1 Interrupt(s) initialization
+// TIMSK1=(0<<ICIE1) | (0<<OCIE1B) | (0<<OCIE1A) | (1<<TOIE1);
 
 // External Interrupt(s) initialization
 // INT0: Off
@@ -366,15 +440,19 @@ ADCSRB=(0<<BIN) | (0<<ADLAR) | (0<<ADTS2) | (0<<ADTS1) | (0<<ADTS0);
 //#endif
 
 // Global enable interrupts
-#asm("sei")    
+
+#asm("sei")  
 BUZZER_ON;
-delay_ms(100);
+delay_ms(400);
 BUZZER_OFF;
-delay_ms(100);
+delay_ms(400);
 BUZZER_ON;
-delay_ms(100);
+delay_ms(400);
 BUZZER_OFF;
-delay_ms(100);
+delay_ms(400);
+// Timer/Counter 1 Interrupt(s) initialization
+TIMSK1=(0<<ICIE1) | (0<<OCIE1B) | (0<<OCIE1A) | (1<<TOIE1);  
+
 	while (1)
 	{
 		Control_ProtectPower();  

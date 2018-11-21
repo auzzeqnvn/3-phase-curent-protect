@@ -46,20 +46,23 @@
 ;
 ;#include <delay.h>
 ;
-;#define	ADC_current_1	1
-;#define	ADC_current_2	2
-;#define	ADC_current_3	3
+;#define	ADC_current_L1	1
+;#define	ADC_current_L2	2
+;#define	ADC_current_L3	3
 ;#define	ADC_current_set	7
 ;
 ;#define	num_sample	10
 ;
+;/* He so nhan gia tri ADC doc duoc tu L1, L2, L3 */
 ;#define	current_scale	6
 ;
-;#define	CURRENT_SET_MAX	16
+;/* Gia tri dong dien cai dat */
+;#define	CURRENT_SET_MAX	20
 ;#define	CURRENT_SET_MIN	8
+;
+;/* Gia tri max co the doc duoc tu VR_set */
 ;#define CURRENT_SET_ADC_VALUE_MAX     840
 ;
-;//#define	v_num_noise_filter	3
 ;
 ;#define	DO_CONTROL_BUZZER	PORTB.0
 ;#define	DO_CONTROL_RELAY	PORTB.1
@@ -75,41 +78,86 @@
 ;#define	Ok	1
 ;#define	Processing	2
 ;
-;unsigned int	Uint_Current1_adc[num_sample];
-;unsigned int	Uint_Current2_adc[num_sample];
-;unsigned int	Uint_Current3_adc[num_sample];
-;unsigned int	Uint_CurrentSet_adc[num_sample];
+;unsigned int	AI10_Current_L1[num_sample];
+;unsigned int	AI10_Current_L2[num_sample];
+;unsigned int	AI10_Current_L3[num_sample];
+;unsigned int	AI10_SetCurrent_VR1[num_sample];
 ;unsigned char	Uchar_Sample_count;
+;unsigned char	Uchar_Timer_count;
 ;
 ;bit	Bit_AdcSample_full = 0;
 ;
 ;bit	Bit_TimerOverflow = 0;
 ;
+;bit Bit_warning = 0;
+;
 ;/*-----------------------------------------------------*/
 ;// Timer1 overflow interrupt service routine
 ;// Timer 10ms
 ;interrupt [TIM1_OVF] void timer1_ovf_isr(void)
-; 0000 0048 {
+; 0000 004E {
 
 	.CSEG
 ;PCODE: $0000000B VOL: 0
 ;PCODE: $0000000C VOL: 0
-; 0000 0049 // Reinitialize Timer1 value
-; 0000 004A 	TCNT1H=0xCF2C >> 8;
+; 0000 004F // Reinitialize Timer1 value
+; 0000 0050 	TCNT1H=0xCF2C >> 8;
 ;PCODE: $0000000D VOL: 0
 ;PCODE: $0000000E VOL: 0
-; 0000 004B 	TCNT1L=0xCF2C & 0xff;
+; 0000 0051 	TCNT1L=0xCF2C & 0xff;
 ;PCODE: $0000000F VOL: 0
 ;PCODE: $00000010 VOL: 0
-; 0000 004C 	// TCNT1H=0x85EE >> 8;
-; 0000 004D 	// TCNT1L=0x85EE & 0xff;
-; 0000 004E 	Bit_TimerOverflow = 1;
+; 0000 0052 	Bit_TimerOverflow = 1;
 ;PCODE: $00000011 VOL: 0
 ;PCODE: $00000012 VOL: 0
-; 0000 004F }
+; 0000 0053 	Uchar_Timer_count++;
 ;PCODE: $00000013 VOL: 0
+; 0000 0054 	if(Uchar_Timer_count>= 10)
 ;PCODE: $00000014 VOL: 0
 ;PCODE: $00000015 VOL: 0
+;PCODE: $00000016 VOL: 0
+; 0000 0055 	{
+; 0000 0056 		Uchar_Timer_count = 0;
+;PCODE: $00000017 VOL: 0
+; 0000 0057 	}
+; 0000 0058 	if(Bit_warning == 1)
+;PCODE: $00000018 VOL: 0
+;PCODE: $00000019 VOL: 0
+;PCODE: $0000001A VOL: 0
+;PCODE: $0000001B VOL: 0
+; 0000 0059 	{
+; 0000 005A 		RELAY_ON;
+;PCODE: $0000001C VOL: 0
+;PCODE: $0000001D VOL: 0
+; 0000 005B 		if(Uchar_Timer_count < 5)	BUZZER_ON;
+;PCODE: $0000001E VOL: 0
+;PCODE: $0000001F VOL: 0
+;PCODE: $00000020 VOL: 0
+;PCODE: $00000021 VOL: 0
+;PCODE: $00000022 VOL: 0
+; 0000 005C 		else	BUZZER_OFF;
+;PCODE: $00000023 VOL: 0
+;PCODE: $00000024 VOL: 0
+;PCODE: $00000025 VOL: 0
+;PCODE: $00000026 VOL: 0
+; 0000 005D 	}
+;PCODE: $00000027 VOL: 0
+; 0000 005E 	else
+;PCODE: $00000028 VOL: 0
+;PCODE: $00000029 VOL: 0
+; 0000 005F 	{
+; 0000 0060 		BUZZER_OFF;
+;PCODE: $0000002A VOL: 0
+;PCODE: $0000002B VOL: 0
+; 0000 0061 		RELAY_OFF;
+;PCODE: $0000002C VOL: 0
+;PCODE: $0000002D VOL: 0
+; 0000 0062 	}
+;PCODE: $0000002E VOL: 0
+; 0000 0063 }
+;PCODE: $0000002F VOL: 0
+;PCODE: $00000030 VOL: 0
+;PCODE: $00000031 VOL: 0
 ;
 ;
 ;
@@ -119,110 +167,79 @@
 ;// Read the AD conversion result
 ;// ADC 10 bit
 ;unsigned int read_adc(unsigned char adc_input)
-; 0000 0059 {
-;PCODE: $00000016 VOL: 0
-;PCODE: $00000017 VOL: 0
-; 0000 005A 	ADMUX=(adc_input & 0x3f) | ADC_VREF_TYPE;
-;PCODE: $00000018 VOL: 0
-;	adc_input -> Y+0
-;PCODE: $00000019 VOL: 0
-;PCODE: $0000001A VOL: 0
-;PCODE: $0000001B VOL: 0
-;PCODE: $0000001C VOL: 0
-; 0000 005B 	// Delay needed for the stabilization of the ADC input voltage
-; 0000 005C 	delay_us(10);
-;PCODE: $0000001D VOL: 0
-; 0000 005D 	// Start the AD conversion
-; 0000 005E 	ADCSRA|=(1<<ADSC);
-;PCODE: $0000001E VOL: 0
-;PCODE: $0000001F VOL: 0
-; 0000 005F 	// Wait for the AD conversion to complete
-; 0000 0060 	while ((ADCSRA & (1<<ADIF))==0);
-;PCODE: $00000020 VOL: 0
-;PCODE: $00000021 VOL: 0
-;PCODE: $00000022 VOL: 0
-;PCODE: $00000023 VOL: 0
-;PCODE: $00000024 VOL: 0
-;PCODE: $00000025 VOL: 0
-; 0000 0061 	ADCSRA|=(1<<ADIF);
-;PCODE: $00000026 VOL: 0
-;PCODE: $00000027 VOL: 0
-; 0000 0062 	return ADCW;
-;PCODE: $00000028 VOL: 0
-;PCODE: $00000029 VOL: 0
-;PCODE: $0000002A VOL: 0
-; 0000 0063 }
-;PCODE: $0000002B VOL: 0
-;
-;/*
-;*	Doc gia tri ADC cac dong dien theo chu ki cua timer.
-;*	Lay gia tri trung binh cac thong so doc duoc.
-;* 	So sanh dong dien tieu thu (1,2,3) voi gia tri cai dat (current_set)
-;*	Bat co canh bao khi dong dien tieu thi lon hon cai dat.
-;*   nhan 10 gia tri doc duoc de tang do phan giai so sanh
-;*/
-;unsigned char	Current_get_value(void)
 ; 0000 006D {
-;PCODE: $0000002C VOL: 0
-;PCODE: $0000002D VOL: 0
-; 0000 006E 	if(Bit_TimerOverflow)
-;PCODE: $0000002E VOL: 0
-;PCODE: $0000002F VOL: 0
-;PCODE: $00000030 VOL: 0
-; 0000 006F 	{
-; 0000 0070 		unsigned char	Uchar_loop_cnt = 0;
-; 0000 0071 		unsigned int	Uint_Current_value = 0;
-; 0000 0072 		unsigned int	Uint_CurrentSet_value = 0;
-; 0000 0073 
-; 0000 0074 		Bit_TimerOverflow = 0;
-;PCODE: $00000031 VOL: 0
 ;PCODE: $00000032 VOL: 0
 ;PCODE: $00000033 VOL: 0
+; 0000 006E 	ADMUX=(adc_input & 0x3f) | ADC_VREF_TYPE;
 ;PCODE: $00000034 VOL: 0
+;	adc_input -> Y+0
 ;PCODE: $00000035 VOL: 0
 ;PCODE: $00000036 VOL: 0
 ;PCODE: $00000037 VOL: 0
 ;PCODE: $00000038 VOL: 0
+; 0000 006F 	// Delay needed for the stabilization of the ADC input voltage
+; 0000 0070 	delay_us(10);
 ;PCODE: $00000039 VOL: 0
+; 0000 0071 	// Start the AD conversion
+; 0000 0072 	ADCSRA|=(1<<ADSC);
 ;PCODE: $0000003A VOL: 0
 ;PCODE: $0000003B VOL: 0
-;	Uchar_loop_cnt -> Y+4
-;	Uint_Current_value -> Y+2
-;	Uint_CurrentSet_value -> Y+0
+; 0000 0073 	// Wait for the AD conversion to complete
+; 0000 0074 	while ((ADCSRA & (1<<ADIF))==0);
 ;PCODE: $0000003C VOL: 0
 ;PCODE: $0000003D VOL: 0
-; 0000 0075 
-; 0000 0076 		Uint_Current1_adc[Uchar_Sample_count] = read_adc(ADC_current_1);
 ;PCODE: $0000003E VOL: 0
 ;PCODE: $0000003F VOL: 0
 ;PCODE: $00000040 VOL: 0
 ;PCODE: $00000041 VOL: 0
+; 0000 0075 	ADCSRA|=(1<<ADIF);
 ;PCODE: $00000042 VOL: 0
 ;PCODE: $00000043 VOL: 0
+; 0000 0076 	return ADCW;
 ;PCODE: $00000044 VOL: 0
 ;PCODE: $00000045 VOL: 0
 ;PCODE: $00000046 VOL: 0
-; 0000 0077 		Uint_Current2_adc[Uchar_Sample_count] = read_adc(ADC_current_2);
+; 0000 0077 }
 ;PCODE: $00000047 VOL: 0
+;
+;/*
+;*	Doc gia tri ADC cac dong dien theo chu ki cua timer (10ms/lan)
+;*	Lay gia tri trung binh cac gai tri doc duoc de giam nhieu.
+;*	nhan 10 gia tri doc duoc de tang do phan giai so sanh 0.1A
+;* 	So sanh dong dien tieu thu (1,2,3) voi gia tri cai dat (current_set)
+;*	Tra ve OK khi dong tieu thu nho hon dong cai dat
+;*	Tra ve ERR khi dong tieu thu lon hon dong cai dat
+;*/
+;unsigned char	Read_value_current(void)
+; 0000 0082 {
 ;PCODE: $00000048 VOL: 0
 ;PCODE: $00000049 VOL: 0
+; 0000 0083 	if(Bit_TimerOverflow)
 ;PCODE: $0000004A VOL: 0
 ;PCODE: $0000004B VOL: 0
 ;PCODE: $0000004C VOL: 0
+; 0000 0084 	{
+; 0000 0085 		unsigned char	Uchar_loop_cnt = 0;
+; 0000 0086 		unsigned long	Uint_Current_value = 0;
+; 0000 0087 		unsigned long	Uint_CurrentSet_value = 0;
+; 0000 0088 
+; 0000 0089 		Uint_CurrentSet_value = read_adc(ADC_current_set);
 ;PCODE: $0000004D VOL: 0
 ;PCODE: $0000004E VOL: 0
 ;PCODE: $0000004F VOL: 0
-; 0000 0078 		Uint_Current3_adc[Uchar_Sample_count] = read_adc(ADC_current_3);
 ;PCODE: $00000050 VOL: 0
 ;PCODE: $00000051 VOL: 0
+;	Uchar_loop_cnt -> Y+8
+;	Uint_Current_value -> Y+4
+;	Uint_CurrentSet_value -> Y+0
 ;PCODE: $00000052 VOL: 0
 ;PCODE: $00000053 VOL: 0
 ;PCODE: $00000054 VOL: 0
 ;PCODE: $00000055 VOL: 0
+; 0000 008A 		Uint_CurrentSet_value = ((Uint_CurrentSet_value*10/CURRENT_SET_ADC_VALUE_MAX)*(CURRENT_SET_MAX - CURRENT_SET_MIN)) + C ...
 ;PCODE: $00000056 VOL: 0
 ;PCODE: $00000057 VOL: 0
 ;PCODE: $00000058 VOL: 0
-; 0000 0079 		Uint_CurrentSet_adc[Uchar_Sample_count] = read_adc(ADC_current_set);
 ;PCODE: $00000059 VOL: 0
 ;PCODE: $0000005A VOL: 0
 ;PCODE: $0000005B VOL: 0
@@ -230,78 +247,81 @@
 ;PCODE: $0000005D VOL: 0
 ;PCODE: $0000005E VOL: 0
 ;PCODE: $0000005F VOL: 0
+; 0000 008B 
+; 0000 008C 		Uint_Current_value = read_adc(ADC_current_L1);
 ;PCODE: $00000060 VOL: 0
 ;PCODE: $00000061 VOL: 0
-; 0000 007A 
-; 0000 007B 		Uchar_Sample_count++;
 ;PCODE: $00000062 VOL: 0
-; 0000 007C 		if(Uchar_Sample_count >= num_sample)
 ;PCODE: $00000063 VOL: 0
+; 0000 008D 		Uint_Current_value = Uint_Current_value*5*current_scale*10/1024;
 ;PCODE: $00000064 VOL: 0
 ;PCODE: $00000065 VOL: 0
-; 0000 007D 		{
-; 0000 007E 			Uchar_Sample_count = 0;
 ;PCODE: $00000066 VOL: 0
-; 0000 007F 			Bit_AdcSample_full = 1;
 ;PCODE: $00000067 VOL: 0
 ;PCODE: $00000068 VOL: 0
-; 0000 0080 		}
-; 0000 0081 
-; 0000 0082 
-; 0000 0083 		if(Bit_AdcSample_full == 0)
 ;PCODE: $00000069 VOL: 0
 ;PCODE: $0000006A VOL: 0
 ;PCODE: $0000006B VOL: 0
 ;PCODE: $0000006C VOL: 0
-; 0000 0084 		{
-; 0000 0085 			/* tinh trung binh gia tri dien ap set doc duoc
-; 0000 0086             */
-; 0000 0087             for(Uchar_loop_cnt = 0; Uchar_loop_cnt < Uchar_Sample_count; Uchar_loop_cnt++)
 ;PCODE: $0000006D VOL: 0
 ;PCODE: $0000006E VOL: 0
+; 0000 008E 		if(Uint_Current_value > Uint_CurrentSet_value)
 ;PCODE: $0000006F VOL: 0
 ;PCODE: $00000070 VOL: 0
 ;PCODE: $00000071 VOL: 0
 ;PCODE: $00000072 VOL: 0
+; 0000 008F 		{
+; 0000 0090 			Bit_warning = 1;
 ;PCODE: $00000073 VOL: 0
 ;PCODE: $00000074 VOL: 0
+; 0000 0091 			Uchar_Sample_count = 0;
 ;PCODE: $00000075 VOL: 0
+; 0000 0092 			//return Err;
+; 0000 0093 		}
+; 0000 0094 		else
 ;PCODE: $00000076 VOL: 0
-; 0000 0088 			{
-; 0000 0089 				Uint_CurrentSet_value += Uint_CurrentSet_adc[Uchar_loop_cnt];
 ;PCODE: $00000077 VOL: 0
+; 0000 0095 		{
+; 0000 0096 			Uint_Current_value = read_adc(ADC_current_L2);
 ;PCODE: $00000078 VOL: 0
 ;PCODE: $00000079 VOL: 0
 ;PCODE: $0000007A VOL: 0
 ;PCODE: $0000007B VOL: 0
+; 0000 0097 			Uint_Current_value = Uint_Current_value*5*current_scale*10/1024;
 ;PCODE: $0000007C VOL: 0
 ;PCODE: $0000007D VOL: 0
 ;PCODE: $0000007E VOL: 0
-; 0000 008A 			}
 ;PCODE: $0000007F VOL: 0
 ;PCODE: $00000080 VOL: 0
 ;PCODE: $00000081 VOL: 0
 ;PCODE: $00000082 VOL: 0
 ;PCODE: $00000083 VOL: 0
 ;PCODE: $00000084 VOL: 0
-; 0000 008B 			Uint_CurrentSet_value /= Uchar_loop_cnt;
 ;PCODE: $00000085 VOL: 0
 ;PCODE: $00000086 VOL: 0
+; 0000 0098 			if(Uint_Current_value > Uint_CurrentSet_value)
 ;PCODE: $00000087 VOL: 0
 ;PCODE: $00000088 VOL: 0
 ;PCODE: $00000089 VOL: 0
-; 0000 008C 			if(Uint_CurrentSet_value >= CURRENT_SET_ADC_VALUE_MAX)	Uint_CurrentSet_value = CURRENT_SET_ADC_VALUE_MAX;
 ;PCODE: $0000008A VOL: 0
+; 0000 0099 			{
+; 0000 009A 				Bit_warning = 1;
 ;PCODE: $0000008B VOL: 0
 ;PCODE: $0000008C VOL: 0
+; 0000 009B 				Uchar_Sample_count = 0;
 ;PCODE: $0000008D VOL: 0
+; 0000 009C 				//return Err;
+; 0000 009D 			}
+; 0000 009E 			else
 ;PCODE: $0000008E VOL: 0
-; 0000 008D 			Uint_CurrentSet_value = (unsigned int)((float)(Uint_CurrentSet_value*10/CURRENT_SET_ADC_VALUE_MAX)*(CURRENT_SET_MAX - ...
 ;PCODE: $0000008F VOL: 0
+; 0000 009F 			{
+; 0000 00A0 				Uint_Current_value = read_adc(ADC_current_L3);
 ;PCODE: $00000090 VOL: 0
 ;PCODE: $00000091 VOL: 0
 ;PCODE: $00000092 VOL: 0
 ;PCODE: $00000093 VOL: 0
+; 0000 00A1 				Uint_Current_value = Uint_Current_value*5*current_scale*10/1024;
 ;PCODE: $00000094 VOL: 0
 ;PCODE: $00000095 VOL: 0
 ;PCODE: $00000096 VOL: 0
@@ -311,714 +331,434 @@
 ;PCODE: $0000009A VOL: 0
 ;PCODE: $0000009B VOL: 0
 ;PCODE: $0000009C VOL: 0
-; 0000 008E 
-; 0000 008F 
-; 0000 0090             /* TInh trung binh gia tri dien ap doc duoc tu L1 */
-; 0000 0091 			for(Uchar_loop_cnt = 0; Uchar_loop_cnt < Uchar_Sample_count; Uchar_loop_cnt++)
 ;PCODE: $0000009D VOL: 0
 ;PCODE: $0000009E VOL: 0
+; 0000 00A2 				if(Uint_Current_value > Uint_CurrentSet_value)
 ;PCODE: $0000009F VOL: 0
 ;PCODE: $000000A0 VOL: 0
 ;PCODE: $000000A1 VOL: 0
 ;PCODE: $000000A2 VOL: 0
+; 0000 00A3 				{
+; 0000 00A4 					Bit_warning = 1;
 ;PCODE: $000000A3 VOL: 0
 ;PCODE: $000000A4 VOL: 0
+; 0000 00A5 					Uchar_Sample_count = 0;
 ;PCODE: $000000A5 VOL: 0
+; 0000 00A6 					//return Err;
+; 0000 00A7 				}
+; 0000 00A8 				else
 ;PCODE: $000000A6 VOL: 0
-; 0000 0092 			{
-; 0000 0093 				Uint_Current_value += Uint_Current1_adc[Uchar_loop_cnt];
 ;PCODE: $000000A7 VOL: 0
+; 0000 00A9 				{
+; 0000 00AA 					Uchar_Sample_count++;
 ;PCODE: $000000A8 VOL: 0
+; 0000 00AB 					if(Uchar_Sample_count > 10)
 ;PCODE: $000000A9 VOL: 0
 ;PCODE: $000000AA VOL: 0
 ;PCODE: $000000AB VOL: 0
+; 0000 00AC 					{
+; 0000 00AD 						Bit_warning = 0;
 ;PCODE: $000000AC VOL: 0
 ;PCODE: $000000AD VOL: 0
+; 0000 00AE 						Uchar_Sample_count = 6;
 ;PCODE: $000000AE VOL: 0
-; 0000 0094 			}
 ;PCODE: $000000AF VOL: 0
+; 0000 00AF 					}
+; 0000 00B0 					//return Ok;
+; 0000 00B1 				}
 ;PCODE: $000000B0 VOL: 0
 ;PCODE: $000000B1 VOL: 0
+; 0000 00B2 			}
 ;PCODE: $000000B2 VOL: 0
+; 0000 00B3 		}
 ;PCODE: $000000B3 VOL: 0
+; 0000 00B4 		Bit_TimerOverflow = 0;
 ;PCODE: $000000B4 VOL: 0
-; 0000 0095 			Uint_Current_value /= Uchar_loop_cnt;
 ;PCODE: $000000B5 VOL: 0
+; 0000 00B5 
+; 0000 00B6 
+; 0000 00B7 		// AI10_Current_L1[Uchar_Sample_count] = read_adc(ADC_current_L1);
+; 0000 00B8 		// AI10_Current_L2[Uchar_Sample_count] = read_adc(ADC_current_L2);
+; 0000 00B9 		// AI10_Current_L3[Uchar_Sample_count] = read_adc(ADC_current_L3);
+; 0000 00BA 
+; 0000 00BB 		// AI10_SetCurrent_VR1[Uchar_Sample_count] = read_adc(ADC_current_set);
+; 0000 00BC 
+; 0000 00BD 		// Uchar_Sample_count++;
+; 0000 00BE 		// if(Uchar_Sample_count >= num_sample)
+; 0000 00BF 		// {
+; 0000 00C0 		// 	Uchar_Sample_count = 0;
+; 0000 00C1 		// 	Bit_AdcSample_full = 1;
+; 0000 00C2 		// }
+; 0000 00C3 
+; 0000 00C4 		// /* So mau lay duoc chua dat du num_sample (10) */
+; 0000 00C5 		// if(Bit_AdcSample_full == 0)
+; 0000 00C6 		// {
+; 0000 00C7 		// 	/* tinh trung binh gia tri dien ap set doc duoc */
+; 0000 00C8 		// 	Uint_CurrentSet_value = 0;
+; 0000 00C9         //     for(Uchar_loop_cnt = 0; Uchar_loop_cnt < Uchar_Sample_count; Uchar_loop_cnt++)
+; 0000 00CA 		// 	{
+; 0000 00CB 		// 		Uint_CurrentSet_value += AI10_SetCurrent_VR1[Uchar_loop_cnt];
+; 0000 00CC 		// 	}
+; 0000 00CD 		// 	Uint_CurrentSet_value /= Uchar_loop_cnt;
+; 0000 00CE 		// 	if(Uint_CurrentSet_value >= CURRENT_SET_ADC_VALUE_MAX)	Uint_CurrentSet_value = CURRENT_SET_ADC_VALUE_MAX;
+; 0000 00CF 		// 	Uint_CurrentSet_value = ((Uint_CurrentSet_value*10/CURRENT_SET_ADC_VALUE_MAX)*(CURRENT_SET_MAX - CURRENT_SET_MIN)) ...
+; 0000 00D0 
+; 0000 00D1 
+; 0000 00D2         //     /* TInh trung binh gia tri dien ap doc duoc tu L1 */
+; 0000 00D3 		// 	Uint_Current_value = 0;
+; 0000 00D4 		// 	for(Uchar_loop_cnt = 0; Uchar_loop_cnt < Uchar_Sample_count; Uchar_loop_cnt++)
+; 0000 00D5 		// 	{
+; 0000 00D6 		// 		Uint_Current_value += AI10_Current_L1[Uchar_loop_cnt];
+; 0000 00D7 		// 	}
+; 0000 00D8 		// 	Uint_Current_value /= Uchar_loop_cnt;
+; 0000 00D9 		// 	Uint_Current_value = Uint_Current_value*5*current_scale*10/1024;
+; 0000 00DA 		// 	if(Uint_Current_value > Uint_CurrentSet_value)	return Err;
+; 0000 00DB 
+; 0000 00DC 		// 	/* TInh trung binh gia tri dien ap doc duoc tu L2 */
+; 0000 00DD 		// 	Uint_Current_value = 0;
+; 0000 00DE 		// 	for(Uchar_loop_cnt = 0; Uchar_loop_cnt < Uchar_Sample_count; Uchar_loop_cnt++)
+; 0000 00DF 		// 	{
+; 0000 00E0 		// 		Uint_Current_value += AI10_Current_L2[Uchar_loop_cnt];
+; 0000 00E1 		// 	}
+; 0000 00E2 		// 	Uint_Current_value /= Uchar_loop_cnt;
+; 0000 00E3 		// 	Uint_Current_value = Uint_Current_value*5*current_scale*10/1024;
+; 0000 00E4 		// 	if(Uint_Current_value > Uint_CurrentSet_value)	return Err;
+; 0000 00E5 
+; 0000 00E6 		// 	/* TInh trung binh gia tri dien ap doc duoc tu L3 */
+; 0000 00E7 		// 	Uint_Current_value = 0;
+; 0000 00E8 		// 	for(Uchar_loop_cnt = 0; Uchar_loop_cnt <= Uchar_Sample_count; Uchar_loop_cnt++)
+; 0000 00E9 		// 	{
+; 0000 00EA 		// 		Uint_Current_value += AI10_Current_L3[Uchar_loop_cnt];
+; 0000 00EB 		// 	}
+; 0000 00EC 		// 	Uint_Current_value /= Uchar_loop_cnt;
+; 0000 00ED 		// 	Uint_Current_value = Uint_Current_value*5*current_scale*10/1024;
+; 0000 00EE 		// 	if(Uint_Current_value > Uint_CurrentSet_value)	return Err;
+; 0000 00EF 
+; 0000 00F0 		// 	return Ok;
+; 0000 00F1         // }
+; 0000 00F2 		// else /* So mau da duoc lay du num_sample*/
+; 0000 00F3 		// {
+; 0000 00F4 		// 	Uint_CurrentSet_value = 0;
+; 0000 00F5 		// 	for(Uchar_loop_cnt = 0; Uchar_loop_cnt < num_sample; Uchar_loop_cnt++)
+; 0000 00F6 		// 	{
+; 0000 00F7 		// 		Uint_CurrentSet_value += AI10_SetCurrent_VR1[Uchar_loop_cnt];
+; 0000 00F8 		// 	}
+; 0000 00F9 		// 	Uint_CurrentSet_value /= num_sample;
+; 0000 00FA 		// 	if(Uint_CurrentSet_value >= CURRENT_SET_ADC_VALUE_MAX)	Uint_CurrentSet_value = CURRENT_SET_ADC_VALUE_MAX;
+; 0000 00FB 		// 	Uint_CurrentSet_value = ((Uint_CurrentSet_value*10/CURRENT_SET_ADC_VALUE_MAX)*(CURRENT_SET_MAX - CURRENT_SET_MIN)) ...
+; 0000 00FC 
+; 0000 00FD 		// 	Uint_Current_value = 0;
+; 0000 00FE 		// 	for(Uchar_loop_cnt = 0; Uchar_loop_cnt < num_sample; Uchar_loop_cnt++)
+; 0000 00FF 		// 	{
+; 0000 0100 		// 		Uint_Current_value += AI10_Current_L1[Uchar_loop_cnt];
+; 0000 0101 		// 	}
+; 0000 0102 		// 	Uint_Current_value /=num_sample;
+; 0000 0103 		// 	Uint_Current_value = Uint_Current_value*5*current_scale*10/1024;
+; 0000 0104 		// 	if(Uint_Current_value > Uint_CurrentSet_value)	return Err;
+; 0000 0105 
+; 0000 0106 		// 	Uint_Current_value = 0;
+; 0000 0107 		// 	for(Uchar_loop_cnt = 0; Uchar_loop_cnt < num_sample; Uchar_loop_cnt++)
+; 0000 0108 		// 	{
+; 0000 0109 		// 		Uint_Current_value += AI10_Current_L2[Uchar_loop_cnt];
+; 0000 010A 		// 	}
+; 0000 010B 		// 	Uint_Current_value /=num_sample;
+; 0000 010C 		// 	Uint_Current_value = Uint_Current_value*5*current_scale*10/1024;
+; 0000 010D 		// 	if(Uint_Current_value > Uint_CurrentSet_value)	return Err;
+; 0000 010E 
+; 0000 010F 		// 	Uint_Current_value = 0;
+; 0000 0110 		// 	for(Uchar_loop_cnt = 0; Uchar_loop_cnt < num_sample; Uchar_loop_cnt++)
+; 0000 0111 		// 	{
+; 0000 0112 		// 		Uint_Current_value += AI10_Current_L3[Uchar_loop_cnt];
+; 0000 0113 		// 	}
+; 0000 0114 		// 	Uint_Current_value /= num_sample;
+; 0000 0115 		// 	Uint_Current_value = Uint_Current_value*5*current_scale*10/1024;
+; 0000 0116 		// 	if(Uint_Current_value > Uint_CurrentSet_value)	return Err;
+; 0000 0117 
+; 0000 0118 		// 	return Ok;
+; 0000 0119 		// }
+; 0000 011A 	}
 ;PCODE: $000000B6 VOL: 0
+; 0000 011B 	return Processing;
 ;PCODE: $000000B7 VOL: 0
 ;PCODE: $000000B8 VOL: 0
 ;PCODE: $000000B9 VOL: 0
-; 0000 0096 			Uint_Current_value = Uint_Current_value*5*current_scale*10/1024;
+; 0000 011C }
 ;PCODE: $000000BA VOL: 0
+;
+;
+;/*
+;*	Dieu khien cac tin hieu canh bao dua vao trang thai tra ve cua ham doc gia tri dong dien
+;*	Err : Bat tin hieu canh bao
+;*	Ok : Tat tien hieu canh bao
+;*/
+;void	Control_ProtectPower(void)
+; 0000 0125 {
 ;PCODE: $000000BB VOL: 0
 ;PCODE: $000000BC VOL: 0
+; 0000 0126 	unsigned char	Uchar_respone = Processing;
+; 0000 0127 	Uchar_respone = Read_value_current();
 ;PCODE: $000000BD VOL: 0
+;	Uchar_respone -> R17
 ;PCODE: $000000BE VOL: 0
 ;PCODE: $000000BF VOL: 0
 ;PCODE: $000000C0 VOL: 0
 ;PCODE: $000000C1 VOL: 0
+; 0000 0128 	//Bit_warning = 1;
+; 0000 0129 	// if(Uchar_respone == Err)
+; 0000 012A 	// {
+; 0000 012B 	// 	Bit_warning = 1;
+; 0000 012C 	// }
+; 0000 012D 	// else if(Uchar_respone == Ok)
+; 0000 012E 	// {
+; 0000 012F 	// 	Bit_warning = 0;
+; 0000 0130 	// }
+; 0000 0131 }
 ;PCODE: $000000C2 VOL: 0
 ;PCODE: $000000C3 VOL: 0
-; 0000 0097 			if(Uint_Current_value > Uint_CurrentSet_value)	return Err;
 ;PCODE: $000000C4 VOL: 0
+;
+;void main(void)
+; 0000 0134 {
 ;PCODE: $000000C5 VOL: 0
+; 0000 0135 // Declare your local variables here
+; 0000 0136 // Crystal Oscillator division factor: 1
+; 0000 0137 #pragma optsize-
+; 0000 0138 CLKPR=(1<<CLKPCE);
 ;PCODE: $000000C6 VOL: 0
 ;PCODE: $000000C7 VOL: 0
+; 0000 0139 CLKPR=(0<<CLKPCE) | (0<<CLKPS3) | (0<<CLKPS2) | (0<<CLKPS1) | (0<<CLKPS0);
 ;PCODE: $000000C8 VOL: 0
 ;PCODE: $000000C9 VOL: 0
+; 0000 013A #ifdef _OPTIMIZE_SIZE_
+; 0000 013B #pragma optsize+
+; 0000 013C #endif
+; 0000 013D // Input/Output Ports initialization
+; 0000 013E // Port A initialization
+; 0000 013F // Function: Bit7=In Bit6=In Bit5=In Bit4=In Bit3=In Bit2=In Bit1=In Bit0=In
+; 0000 0140 DDRA=(0<<DDA7) | (0<<DDA6) | (0<<DDA5) | (0<<DDA4) | (0<<DDA3) | (0<<DDA2) | (0<<DDA1) | (0<<DDA0);
 ;PCODE: $000000CA VOL: 0
-; 0000 0098 
-; 0000 0099 			for(Uchar_loop_cnt = 0; Uchar_loop_cnt < Uchar_Sample_count; Uchar_loop_cnt++)
 ;PCODE: $000000CB VOL: 0
+; 0000 0141 // State: Bit7=T Bit6=T Bit5=T Bit4=T Bit3=T Bit2=T Bit1=T Bit0=T
+; 0000 0142 PORTA=(0<<PORTA7) | (0<<PORTA6) | (0<<PORTA5) | (0<<PORTA4) | (0<<PORTA3) | (0<<PORTA2) | (0<<PORTA1) | (0<<PORTA0);
 ;PCODE: $000000CC VOL: 0
 ;PCODE: $000000CD VOL: 0
+; 0000 0143 
+; 0000 0144 // Port B initialization
+; 0000 0145 // Function: Bit3=Out Bit2=In Bit1=Out Bit0=Out
+; 0000 0146 DDRB=(1<<DDB3) | (1<<DDB2) | (1<<DDB1) | (1<<DDB0);
 ;PCODE: $000000CE VOL: 0
 ;PCODE: $000000CF VOL: 0
+; 0000 0147 // State: Bit3=0 Bit2=T Bit1=0 Bit0=0
+; 0000 0148 PORTB=(0<<PORTB3) | (0<<PORTB2) | (0<<PORTB1) | (0<<PORTB0);
 ;PCODE: $000000D0 VOL: 0
 ;PCODE: $000000D1 VOL: 0
+; 0000 0149 
+; 0000 014A // Timer/Counter 0 initialization
+; 0000 014B // Clock source: System Clock
+; 0000 014C // Clock value: Timer 0 Stopped
+; 0000 014D // Mode: Normal top=0xFF
+; 0000 014E // OC0A output: Disconnected
+; 0000 014F // OC0B output: Disconnected
+; 0000 0150 TCCR0A=(0<<COM0A1) | (0<<COM0A0) | (0<<COM0B1) | (0<<COM0B0) | (0<<WGM01) | (0<<WGM00);
 ;PCODE: $000000D2 VOL: 0
 ;PCODE: $000000D3 VOL: 0
+; 0000 0151 TCCR0B=(0<<WGM02) | (0<<CS02) | (0<<CS01) | (0<<CS00);
 ;PCODE: $000000D4 VOL: 0
 ;PCODE: $000000D5 VOL: 0
-; 0000 009A 			{
-; 0000 009B 				Uint_Current_value += Uint_Current2_adc[Uchar_loop_cnt];
+; 0000 0152 TCNT0=0x00;
 ;PCODE: $000000D6 VOL: 0
 ;PCODE: $000000D7 VOL: 0
+; 0000 0153 OCR0A=0x00;
 ;PCODE: $000000D8 VOL: 0
 ;PCODE: $000000D9 VOL: 0
+; 0000 0154 OCR0B=0x00;
 ;PCODE: $000000DA VOL: 0
 ;PCODE: $000000DB VOL: 0
+; 0000 0155 
+; 0000 0156 // Timer/Counter 1 initialization
+; 0000 0157 // Clock source: System Clock
+; 0000 0158 // Clock value: 125,000 kHz
+; 0000 0159 // Mode: Normal top=0xFFFF
+; 0000 015A // OC1A output: Disconnected
+; 0000 015B // OC1B output: Disconnected
+; 0000 015C // Noise Canceler: Off
+; 0000 015D // Input Capture on Falling Edge
+; 0000 015E // Timer Period: 0,1 s
+; 0000 015F // Timer1 Overflow Interrupt: On
+; 0000 0160 // Input Capture Interrupt: Off
+; 0000 0161 // Compare A Match Interrupt: Off
+; 0000 0162 // Compare B Match Interrupt: Off
+; 0000 0163 TCCR1A=(0<<COM1A1) | (0<<COM1A0) | (0<<COM1B1) | (0<<COM1B0) | (0<<WGM11) | (0<<WGM10);
 ;PCODE: $000000DC VOL: 0
 ;PCODE: $000000DD VOL: 0
-; 0000 009C 			}
+; 0000 0164 TCCR1B=(0<<ICNC1) | (0<<ICES1) | (0<<WGM13) | (0<<WGM12) | (0<<CS12) | (1<<CS11) | (1<<CS10);
 ;PCODE: $000000DE VOL: 0
 ;PCODE: $000000DF VOL: 0
+; 0000 0165 TCNT1H=0xCF;
 ;PCODE: $000000E0 VOL: 0
 ;PCODE: $000000E1 VOL: 0
+; 0000 0166 TCNT1L=0x2C;
 ;PCODE: $000000E2 VOL: 0
 ;PCODE: $000000E3 VOL: 0
-; 0000 009D 			Uint_Current_value /= Uchar_loop_cnt;
+; 0000 0167 ICR1H=0x00;
 ;PCODE: $000000E4 VOL: 0
 ;PCODE: $000000E5 VOL: 0
+; 0000 0168 ICR1L=0x00;
 ;PCODE: $000000E6 VOL: 0
 ;PCODE: $000000E7 VOL: 0
+; 0000 0169 OCR1AH=0x00;
 ;PCODE: $000000E8 VOL: 0
-; 0000 009E 			Uint_Current_value = Uint_Current_value*5*current_scale*10/1024;
 ;PCODE: $000000E9 VOL: 0
+; 0000 016A OCR1AL=0x00;
 ;PCODE: $000000EA VOL: 0
 ;PCODE: $000000EB VOL: 0
+; 0000 016B OCR1BH=0x00;
 ;PCODE: $000000EC VOL: 0
 ;PCODE: $000000ED VOL: 0
+; 0000 016C OCR1BL=0x00;
 ;PCODE: $000000EE VOL: 0
 ;PCODE: $000000EF VOL: 0
+; 0000 016D // // Timer/Counter 1 initialization
+; 0000 016E // // Clock source: System Clock
+; 0000 016F // // Clock value: 31.250 kHz
+; 0000 0170 // // Mode: Normal top=0xFFFF
+; 0000 0171 // // OC1A output: Disconnected
+; 0000 0172 // // OC1B output: Disconnected
+; 0000 0173 // // Noise Canceler: Off
+; 0000 0174 // // Input Capture on Falling Edge
+; 0000 0175 // // Timer Period: 1 s
+; 0000 0176 // // Timer1 Overflow Interrupt: On
+; 0000 0177 // // Input Capture Interrupt: Off
+; 0000 0178 // // Compare A Match Interrupt: Off
+; 0000 0179 // // Compare B Match Interrupt: Off
+; 0000 017A // TCCR1A=(0<<COM1A1) | (0<<COM1A0) | (0<<COM1B1) | (0<<COM1B0) | (0<<WGM11) | (0<<WGM10);
+; 0000 017B // TCCR1B=(0<<ICNC1) | (0<<ICES1) | (0<<WGM13) | (0<<WGM12) | (1<<CS12) | (0<<CS11) | (0<<CS10);
+; 0000 017C // TCNT1H=0x85;
+; 0000 017D // TCNT1L=0xEE;
+; 0000 017E // ICR1H=0x00;
+; 0000 017F // ICR1L=0x00;
+; 0000 0180 // OCR1AH=0x00;
+; 0000 0181 // OCR1AL=0x00;
+; 0000 0182 // OCR1BH=0x00;
+; 0000 0183 // OCR1BL=0x00;
+; 0000 0184 // Timer/Counter 0 Interrupt(s) initialization
+; 0000 0185 TIMSK0=(0<<OCIE0B) | (0<<OCIE0A) | (0<<TOIE0);
 ;PCODE: $000000F0 VOL: 0
 ;PCODE: $000000F1 VOL: 0
+; 0000 0186 
+; 0000 0187 // // Timer/Counter 1 Interrupt(s) initialization
+; 0000 0188 // TIMSK1=(0<<ICIE1) | (0<<OCIE1B) | (0<<OCIE1A) | (1<<TOIE1);
+; 0000 0189 
+; 0000 018A // External Interrupt(s) initialization
+; 0000 018B // INT0: Off
+; 0000 018C // Interrupt on any change on pins PCINT0-7: Off
+; 0000 018D // Interrupt on any change on pins PCINT8-11: Off
+; 0000 018E MCUCR=(0<<ISC01) | (0<<ISC00);
 ;PCODE: $000000F2 VOL: 0
-; 0000 009F 			if(Uint_Current_value > Uint_CurrentSet_value)	return Err;
 ;PCODE: $000000F3 VOL: 0
+; 0000 018F GIMSK=(0<<INT0) | (0<<PCIE1) | (0<<PCIE0);
 ;PCODE: $000000F4 VOL: 0
 ;PCODE: $000000F5 VOL: 0
+; 0000 0190 
+; 0000 0191 // USI initialization
+; 0000 0192 // Mode: Disabled
+; 0000 0193 // Clock source: Register & Counter=no clk.
+; 0000 0194 // USI Counter Overflow Interrupt: Off
+; 0000 0195 USICR=(0<<USISIE) | (0<<USIOIE) | (0<<USIWM1) | (0<<USIWM0) | (0<<USICS1) | (0<<USICS0) | (0<<USICLK) | (0<<USITC);
 ;PCODE: $000000F6 VOL: 0
 ;PCODE: $000000F7 VOL: 0
+; 0000 0196 
+; 0000 0197 // Analog Comparator initialization
+; 0000 0198 // Analog Comparator: Off
+; 0000 0199 // The Analog Comparator's positive input is
+; 0000 019A // connected to the AIN0 pin
+; 0000 019B // The Analog Comparator's negative input is
+; 0000 019C // connected to the AIN1 pin
+; 0000 019D ACSR=(1<<ACD) | (0<<ACBG) | (0<<ACO) | (0<<ACI) | (0<<ACIE) | (0<<ACIC) | (0<<ACIS1) | (0<<ACIS0);
 ;PCODE: $000000F8 VOL: 0
 ;PCODE: $000000F9 VOL: 0
-; 0000 00A0 			// if(Uint_Current_value > 40)	return Err;
-; 0000 00A1 
-; 0000 00A2 			for(Uchar_loop_cnt = 0; Uchar_loop_cnt <= Uchar_Sample_count; Uchar_loop_cnt++)
+; 0000 019E // Digital input buffer on AIN0: On
+; 0000 019F // Digital input buffer on AIN1: On
+; 0000 01A0 DIDR0=(0<<ADC1D) | (0<<ADC2D);
 ;PCODE: $000000FA VOL: 0
 ;PCODE: $000000FB VOL: 0
+; 0000 01A1 
+; 0000 01A2 
+; 0000 01A3 // ADC initialization
+; 0000 01A4 // ADC Clock frequency: 1000.000 kHz
+; 0000 01A5 // ADC Voltage Reference: AVCC pin
+; 0000 01A6 // ADC Bipolar Input Mode: Off
+; 0000 01A7 // ADC Auto Trigger Source: ADC Stopped
+; 0000 01A8 // Digital input buffers on ADC0: Off, ADC1: On, ADC2: On, ADC3: On
+; 0000 01A9 // ADC4: Off, ADC5: Off, ADC6: Off, ADC7: On
+; 0000 01AA DIDR0=(0<<ADC7D) | (1<<ADC6D) | (1<<ADC5D) | (1<<ADC4D) | (0<<ADC3D) | (0<<ADC2D) | (0<<ADC1D) | (1<<ADC0D);
 ;PCODE: $000000FC VOL: 0
 ;PCODE: $000000FD VOL: 0
+; 0000 01AB ADMUX=ADC_VREF_TYPE;
 ;PCODE: $000000FE VOL: 0
 ;PCODE: $000000FF VOL: 0
+; 0000 01AC ADCSRA=(1<<ADEN) | (0<<ADSC) | (0<<ADATE) | (0<<ADIF) | (0<<ADIE) | (0<<ADPS2) | (1<<ADPS1) | (1<<ADPS0);
 ;PCODE: $00000100 VOL: 0
 ;PCODE: $00000101 VOL: 0
+; 0000 01AD ADCSRB=(0<<BIN) | (0<<ADLAR) | (0<<ADTS2) | (0<<ADTS1) | (0<<ADTS0);
 ;PCODE: $00000102 VOL: 0
 ;PCODE: $00000103 VOL: 0
+; 0000 01AE 
+; 0000 01AF 
+; 0000 01B0 // Watchdog Timer initialization
+; 0000 01B1 // Watchdog Timer Prescaler: OSC/2k
+; 0000 01B2 // Watchdog timeout action: Reset
+; 0000 01B3 //#pragma optsize-
+; 0000 01B4 //WDTCSR=(0<<WDIF) | (0<<WDIE) | (0<<WDP3) | (1<<WDCE) | (1<<WDE) | (0<<WDP2) | (0<<WDP1) | (0<<WDP0);
+; 0000 01B5 //WDTCSR=(0<<WDIF) | (0<<WDIE) | (0<<WDP3) | (0<<WDCE) | (1<<WDE) | (0<<WDP2) | (0<<WDP1) | (0<<WDP0);
+; 0000 01B6 //#ifdef _OPTIMIZE_SIZE_
+; 0000 01B7 //#pragma optsize+
+; 0000 01B8 //#endif
+; 0000 01B9 
+; 0000 01BA // Global enable interrupts
+; 0000 01BB 
+; 0000 01BC #asm("sei")
 ;PCODE: $00000104 VOL: 0
-; 0000 00A3 			{
-; 0000 00A4 				Uint_Current_value += Uint_Current3_adc[Uchar_loop_cnt];
+	sei
 ;PCODE: $00000105 VOL: 0
+; 0000 01BD BUZZER_ON;
 ;PCODE: $00000106 VOL: 0
 ;PCODE: $00000107 VOL: 0
+; 0000 01BE delay_ms(400);
 ;PCODE: $00000108 VOL: 0
 ;PCODE: $00000109 VOL: 0
+; 0000 01BF BUZZER_OFF;
 ;PCODE: $0000010A VOL: 0
 ;PCODE: $0000010B VOL: 0
+; 0000 01C0 delay_ms(400);
 ;PCODE: $0000010C VOL: 0
-; 0000 00A5 			}
 ;PCODE: $0000010D VOL: 0
+; 0000 01C1 BUZZER_ON;
 ;PCODE: $0000010E VOL: 0
 ;PCODE: $0000010F VOL: 0
+; 0000 01C2 delay_ms(400);
 ;PCODE: $00000110 VOL: 0
 ;PCODE: $00000111 VOL: 0
+; 0000 01C3 BUZZER_OFF;
 ;PCODE: $00000112 VOL: 0
-; 0000 00A6 			Uint_Current_value /= Uchar_loop_cnt;
 ;PCODE: $00000113 VOL: 0
+; 0000 01C4 delay_ms(400);
 ;PCODE: $00000114 VOL: 0
 ;PCODE: $00000115 VOL: 0
+; 0000 01C5 // Timer/Counter 1 Interrupt(s) initialization
+; 0000 01C6 TIMSK1=(0<<ICIE1) | (0<<OCIE1B) | (0<<OCIE1A) | (1<<TOIE1);
 ;PCODE: $00000116 VOL: 0
 ;PCODE: $00000117 VOL: 0
-; 0000 00A7 			Uint_Current_value = Uint_Current_value*5*current_scale*10/1024;
+; 0000 01C7 
+; 0000 01C8 	while (1)
 ;PCODE: $00000118 VOL: 0
+; 0000 01C9 	{
+; 0000 01CA 		Control_ProtectPower();
 ;PCODE: $00000119 VOL: 0
+; 0000 01CB 	}
 ;PCODE: $0000011A VOL: 0
 ;PCODE: $0000011B VOL: 0
+; 0000 01CC }
 ;PCODE: $0000011C VOL: 0
 ;PCODE: $0000011D VOL: 0
 ;PCODE: $0000011E VOL: 0
-;PCODE: $0000011F VOL: 0
-;PCODE: $00000120 VOL: 0
-;PCODE: $00000121 VOL: 0
-; 0000 00A8 			if(Uint_Current_value > Uint_CurrentSet_value)	return Err;
-;PCODE: $00000122 VOL: 0
-;PCODE: $00000123 VOL: 0
-;PCODE: $00000124 VOL: 0
-;PCODE: $00000125 VOL: 0
-;PCODE: $00000126 VOL: 0
-;PCODE: $00000127 VOL: 0
-;PCODE: $00000128 VOL: 0
-; 0000 00A9         }
-;PCODE: $00000129 VOL: 0
-; 0000 00AA 		else
-;PCODE: $0000012A VOL: 0
-;PCODE: $0000012B VOL: 0
-; 0000 00AB 		{
-; 0000 00AC 			for(Uchar_loop_cnt = 0; Uchar_loop_cnt < num_sample; Uchar_loop_cnt++)
-;PCODE: $0000012C VOL: 0
-;PCODE: $0000012D VOL: 0
-;PCODE: $0000012E VOL: 0
-;PCODE: $0000012F VOL: 0
-;PCODE: $00000130 VOL: 0
-;PCODE: $00000131 VOL: 0
-;PCODE: $00000132 VOL: 0
-;PCODE: $00000133 VOL: 0
-;PCODE: $00000134 VOL: 0
-;PCODE: $00000135 VOL: 0
-; 0000 00AD 			{
-; 0000 00AE 				Uint_CurrentSet_value += Uint_CurrentSet_adc[Uchar_loop_cnt];
-;PCODE: $00000136 VOL: 0
-;PCODE: $00000137 VOL: 0
-;PCODE: $00000138 VOL: 0
-;PCODE: $00000139 VOL: 0
-;PCODE: $0000013A VOL: 0
-;PCODE: $0000013B VOL: 0
-;PCODE: $0000013C VOL: 0
-;PCODE: $0000013D VOL: 0
-; 0000 00AF 			}
-;PCODE: $0000013E VOL: 0
-;PCODE: $0000013F VOL: 0
-;PCODE: $00000140 VOL: 0
-;PCODE: $00000141 VOL: 0
-;PCODE: $00000142 VOL: 0
-;PCODE: $00000143 VOL: 0
-; 0000 00B0 			Uint_CurrentSet_value /= num_sample;
-;PCODE: $00000144 VOL: 0
-;PCODE: $00000145 VOL: 0
-;PCODE: $00000146 VOL: 0
-;PCODE: $00000147 VOL: 0
-; 0000 00B1 			if(Uint_CurrentSet_value >= CURRENT_SET_ADC_VALUE_MAX)	Uint_CurrentSet_value = CURRENT_SET_ADC_VALUE_MAX;
-;PCODE: $00000148 VOL: 0
-;PCODE: $00000149 VOL: 0
-;PCODE: $0000014A VOL: 0
-;PCODE: $0000014B VOL: 0
-;PCODE: $0000014C VOL: 0
-; 0000 00B2 			Uint_CurrentSet_value = (unsigned int)((float)(Uint_CurrentSet_value*10/CURRENT_SET_ADC_VALUE_MAX)*(CURRENT_SET_MAX - ...
-;PCODE: $0000014D VOL: 0
-;PCODE: $0000014E VOL: 0
-;PCODE: $0000014F VOL: 0
-;PCODE: $00000150 VOL: 0
-;PCODE: $00000151 VOL: 0
-;PCODE: $00000152 VOL: 0
-;PCODE: $00000153 VOL: 0
-;PCODE: $00000154 VOL: 0
-;PCODE: $00000155 VOL: 0
-;PCODE: $00000156 VOL: 0
-;PCODE: $00000157 VOL: 0
-;PCODE: $00000158 VOL: 0
-;PCODE: $00000159 VOL: 0
-;PCODE: $0000015A VOL: 0
-; 0000 00B3 
-; 0000 00B4 			for(Uchar_loop_cnt = 0; Uchar_loop_cnt < num_sample; Uchar_loop_cnt++)
-;PCODE: $0000015B VOL: 0
-;PCODE: $0000015C VOL: 0
-;PCODE: $0000015D VOL: 0
-;PCODE: $0000015E VOL: 0
-;PCODE: $0000015F VOL: 0
-;PCODE: $00000160 VOL: 0
-;PCODE: $00000161 VOL: 0
-;PCODE: $00000162 VOL: 0
-;PCODE: $00000163 VOL: 0
-;PCODE: $00000164 VOL: 0
-; 0000 00B5 			{
-; 0000 00B6 				Uint_Current_value += Uint_Current1_adc[Uchar_loop_cnt];
-;PCODE: $00000165 VOL: 0
-;PCODE: $00000166 VOL: 0
-;PCODE: $00000167 VOL: 0
-;PCODE: $00000168 VOL: 0
-;PCODE: $00000169 VOL: 0
-;PCODE: $0000016A VOL: 0
-;PCODE: $0000016B VOL: 0
-;PCODE: $0000016C VOL: 0
-; 0000 00B7 			}
-;PCODE: $0000016D VOL: 0
-;PCODE: $0000016E VOL: 0
-;PCODE: $0000016F VOL: 0
-;PCODE: $00000170 VOL: 0
-;PCODE: $00000171 VOL: 0
-;PCODE: $00000172 VOL: 0
-; 0000 00B8 			Uint_Current_value /=num_sample;
-;PCODE: $00000173 VOL: 0
-;PCODE: $00000174 VOL: 0
-;PCODE: $00000175 VOL: 0
-;PCODE: $00000176 VOL: 0
-; 0000 00B9 			Uint_Current_value = Uint_Current_value*5*current_scale*10/1024;
-;PCODE: $00000177 VOL: 0
-;PCODE: $00000178 VOL: 0
-;PCODE: $00000179 VOL: 0
-;PCODE: $0000017A VOL: 0
-;PCODE: $0000017B VOL: 0
-;PCODE: $0000017C VOL: 0
-;PCODE: $0000017D VOL: 0
-;PCODE: $0000017E VOL: 0
-;PCODE: $0000017F VOL: 0
-;PCODE: $00000180 VOL: 0
-; 0000 00BA 			if(Uint_Current_value > Uint_CurrentSet_value)	return Err;
-;PCODE: $00000181 VOL: 0
-;PCODE: $00000182 VOL: 0
-;PCODE: $00000183 VOL: 0
-;PCODE: $00000184 VOL: 0
-;PCODE: $00000185 VOL: 0
-;PCODE: $00000186 VOL: 0
-;PCODE: $00000187 VOL: 0
-; 0000 00BB 
-; 0000 00BC 			for(Uchar_loop_cnt = 0; Uchar_loop_cnt < num_sample; Uchar_loop_cnt++)
-;PCODE: $00000188 VOL: 0
-;PCODE: $00000189 VOL: 0
-;PCODE: $0000018A VOL: 0
-;PCODE: $0000018B VOL: 0
-;PCODE: $0000018C VOL: 0
-;PCODE: $0000018D VOL: 0
-;PCODE: $0000018E VOL: 0
-;PCODE: $0000018F VOL: 0
-;PCODE: $00000190 VOL: 0
-;PCODE: $00000191 VOL: 0
-;PCODE: $00000192 VOL: 0
-; 0000 00BD 			{
-; 0000 00BE 				Uint_Current_value += Uint_Current2_adc[Uchar_loop_cnt];
-;PCODE: $00000193 VOL: 0
-;PCODE: $00000194 VOL: 0
-;PCODE: $00000195 VOL: 0
-;PCODE: $00000196 VOL: 0
-;PCODE: $00000197 VOL: 0
-;PCODE: $00000198 VOL: 0
-;PCODE: $00000199 VOL: 0
-;PCODE: $0000019A VOL: 0
-; 0000 00BF 			}
-;PCODE: $0000019B VOL: 0
-;PCODE: $0000019C VOL: 0
-;PCODE: $0000019D VOL: 0
-;PCODE: $0000019E VOL: 0
-;PCODE: $0000019F VOL: 0
-;PCODE: $000001A0 VOL: 0
-; 0000 00C0 			Uint_Current_value /=num_sample;
-;PCODE: $000001A1 VOL: 0
-;PCODE: $000001A2 VOL: 0
-;PCODE: $000001A3 VOL: 0
-;PCODE: $000001A4 VOL: 0
-; 0000 00C1 			Uint_Current_value = Uint_Current_value*5*current_scale*10/1024;
-;PCODE: $000001A5 VOL: 0
-;PCODE: $000001A6 VOL: 0
-;PCODE: $000001A7 VOL: 0
-;PCODE: $000001A8 VOL: 0
-;PCODE: $000001A9 VOL: 0
-;PCODE: $000001AA VOL: 0
-;PCODE: $000001AB VOL: 0
-;PCODE: $000001AC VOL: 0
-;PCODE: $000001AD VOL: 0
-;PCODE: $000001AE VOL: 0
-; 0000 00C2 			if(Uint_Current_value > Uint_CurrentSet_value)	return Err;
-;PCODE: $000001AF VOL: 0
-;PCODE: $000001B0 VOL: 0
-;PCODE: $000001B1 VOL: 0
-;PCODE: $000001B2 VOL: 0
-;PCODE: $000001B3 VOL: 0
-;PCODE: $000001B4 VOL: 0
-;PCODE: $000001B5 VOL: 0
-; 0000 00C3 			// if(Uint_Current_value > 40)	return Err;
-; 0000 00C4 
-; 0000 00C5 			for(Uchar_loop_cnt = 0; Uchar_loop_cnt < num_sample; Uchar_loop_cnt++)
-;PCODE: $000001B6 VOL: 0
-;PCODE: $000001B7 VOL: 0
-;PCODE: $000001B8 VOL: 0
-;PCODE: $000001B9 VOL: 0
-;PCODE: $000001BA VOL: 0
-;PCODE: $000001BB VOL: 0
-;PCODE: $000001BC VOL: 0
-;PCODE: $000001BD VOL: 0
-;PCODE: $000001BE VOL: 0
-;PCODE: $000001BF VOL: 0
-;PCODE: $000001C0 VOL: 0
-; 0000 00C6 			{
-; 0000 00C7 				Uint_Current_value += Uint_Current3_adc[Uchar_loop_cnt];
-;PCODE: $000001C1 VOL: 0
-;PCODE: $000001C2 VOL: 0
-;PCODE: $000001C3 VOL: 0
-;PCODE: $000001C4 VOL: 0
-;PCODE: $000001C5 VOL: 0
-;PCODE: $000001C6 VOL: 0
-;PCODE: $000001C7 VOL: 0
-;PCODE: $000001C8 VOL: 0
-; 0000 00C8 			}
-;PCODE: $000001C9 VOL: 0
-;PCODE: $000001CA VOL: 0
-;PCODE: $000001CB VOL: 0
-;PCODE: $000001CC VOL: 0
-;PCODE: $000001CD VOL: 0
-;PCODE: $000001CE VOL: 0
-; 0000 00C9 			Uint_Current_value /= num_sample;
-;PCODE: $000001CF VOL: 0
-;PCODE: $000001D0 VOL: 0
-;PCODE: $000001D1 VOL: 0
-;PCODE: $000001D2 VOL: 0
-; 0000 00CA 			Uint_Current_value = Uint_Current_value*5*current_scale*10/1024;
-;PCODE: $000001D3 VOL: 0
-;PCODE: $000001D4 VOL: 0
-;PCODE: $000001D5 VOL: 0
-;PCODE: $000001D6 VOL: 0
-;PCODE: $000001D7 VOL: 0
-;PCODE: $000001D8 VOL: 0
-;PCODE: $000001D9 VOL: 0
-;PCODE: $000001DA VOL: 0
-;PCODE: $000001DB VOL: 0
-;PCODE: $000001DC VOL: 0
-; 0000 00CB 			if(Uint_Current_value > Uint_CurrentSet_value)	return Err;
-;PCODE: $000001DD VOL: 0
-;PCODE: $000001DE VOL: 0
-;PCODE: $000001DF VOL: 0
-;PCODE: $000001E0 VOL: 0
-;PCODE: $000001E1 VOL: 0
-;PCODE: $000001E2 VOL: 0
-;PCODE: $000001E3 VOL: 0
-; 0000 00CC 		}
-;PCODE: $000001E4 VOL: 0
-;PCODE: $000001E5 VOL: 0
-; 0000 00CD 		return Ok;
-;PCODE: $000001E6 VOL: 0
-;PCODE: $000001E7 VOL: 0
-;PCODE: $000001E8 VOL: 0
-; 0000 00CE 	}
-;PCODE: $000001E9 VOL: 0
-; 0000 00CF 	return Processing;
-;PCODE: $000001EA VOL: 0
-;PCODE: $000001EB VOL: 0
-;PCODE: $000001EC VOL: 0
-; 0000 00D0 }
-;PCODE: $000001ED VOL: 0
-;
-;
-;/*
-;*	Dieu khien cac tin hieu canh bao dua vao trang thai cac co canh bao
-;*/
-;void	Protect_control(void)
-; 0000 00D7 {
-;PCODE: $000001EE VOL: 0
-;PCODE: $000001EF VOL: 0
-; 0000 00D8 	unsigned char	Uchar_respone = Processing;
-; 0000 00D9 	Uchar_respone = Current_get_value();
-;PCODE: $000001F0 VOL: 0
-;	Uchar_respone -> R17
-;PCODE: $000001F1 VOL: 0
-;PCODE: $000001F2 VOL: 0
-;PCODE: $000001F3 VOL: 0
-;PCODE: $000001F4 VOL: 0
-; 0000 00DA 	if(Uchar_respone == Err)
-;PCODE: $000001F5 VOL: 0
-;PCODE: $000001F6 VOL: 0
-; 0000 00DB 	{
-; 0000 00DC 		BUZZER_ON;
-;PCODE: $000001F7 VOL: 0
-;PCODE: $000001F8 VOL: 0
-; 0000 00DD 		RELAY_ON;
-;PCODE: $000001F9 VOL: 0
-;PCODE: $000001FA VOL: 0
-; 0000 00DE 	}
-; 0000 00DF 	else if(Uchar_respone == Ok)
-;PCODE: $000001FB VOL: 0
-;PCODE: $000001FC VOL: 0
-;PCODE: $000001FD VOL: 0
-;PCODE: $000001FE VOL: 0
-;PCODE: $000001FF VOL: 0
-; 0000 00E0 	{
-; 0000 00E1 		BUZZER_OFF;
-;PCODE: $00000200 VOL: 0
-;PCODE: $00000201 VOL: 0
-; 0000 00E2 		RELAY_OFF;
-;PCODE: $00000202 VOL: 0
-;PCODE: $00000203 VOL: 0
-; 0000 00E3 	}
-; 0000 00E4 }
-;PCODE: $00000204 VOL: 0
-;PCODE: $00000205 VOL: 0
-;PCODE: $00000206 VOL: 0
-;PCODE: $00000207 VOL: 0
-;PCODE: $00000208 VOL: 0
-;
-;void main(void)
-; 0000 00E7 {
-;PCODE: $00000209 VOL: 0
-; 0000 00E8 // Declare your local variables here
-; 0000 00E9 // Crystal Oscillator division factor: 1
-; 0000 00EA #pragma optsize-
-; 0000 00EB CLKPR=(1<<CLKPCE);
-;PCODE: $0000020A VOL: 0
-;PCODE: $0000020B VOL: 0
-; 0000 00EC CLKPR=(0<<CLKPCE) | (0<<CLKPS3) | (0<<CLKPS2) | (0<<CLKPS1) | (0<<CLKPS0);
-;PCODE: $0000020C VOL: 0
-;PCODE: $0000020D VOL: 0
-; 0000 00ED #ifdef _OPTIMIZE_SIZE_
-; 0000 00EE #pragma optsize+
-; 0000 00EF #endif
-; 0000 00F0 // Input/Output Ports initialization
-; 0000 00F1 // Port A initialization
-; 0000 00F2 // Function: Bit7=In Bit6=In Bit5=In Bit4=In Bit3=In Bit2=In Bit1=In Bit0=In
-; 0000 00F3 DDRA=(0<<DDA7) | (0<<DDA6) | (0<<DDA5) | (0<<DDA4) | (0<<DDA3) | (0<<DDA2) | (0<<DDA1) | (0<<DDA0);
-;PCODE: $0000020E VOL: 0
-;PCODE: $0000020F VOL: 0
-; 0000 00F4 // State: Bit7=T Bit6=T Bit5=T Bit4=T Bit3=T Bit2=T Bit1=T Bit0=T
-; 0000 00F5 PORTA=(0<<PORTA7) | (0<<PORTA6) | (0<<PORTA5) | (0<<PORTA4) | (0<<PORTA3) | (0<<PORTA2) | (0<<PORTA1) | (0<<PORTA0);
-;PCODE: $00000210 VOL: 0
-;PCODE: $00000211 VOL: 0
-; 0000 00F6 
-; 0000 00F7 // Port B initialization
-; 0000 00F8 // Function: Bit3=Out Bit2=In Bit1=Out Bit0=Out
-; 0000 00F9 DDRB=(1<<DDB3) | (1<<DDB2) | (1<<DDB1) | (1<<DDB0);
-;PCODE: $00000212 VOL: 0
-;PCODE: $00000213 VOL: 0
-; 0000 00FA // State: Bit3=0 Bit2=T Bit1=0 Bit0=0
-; 0000 00FB PORTB=(0<<PORTB3) | (0<<PORTB2) | (0<<PORTB1) | (0<<PORTB0);
-;PCODE: $00000214 VOL: 0
-;PCODE: $00000215 VOL: 0
-; 0000 00FC 
-; 0000 00FD // Timer/Counter 0 initialization
-; 0000 00FE // Clock source: System Clock
-; 0000 00FF // Clock value: Timer 0 Stopped
-; 0000 0100 // Mode: Normal top=0xFF
-; 0000 0101 // OC0A output: Disconnected
-; 0000 0102 // OC0B output: Disconnected
-; 0000 0103 TCCR0A=(0<<COM0A1) | (0<<COM0A0) | (0<<COM0B1) | (0<<COM0B0) | (0<<WGM01) | (0<<WGM00);
-;PCODE: $00000216 VOL: 0
-;PCODE: $00000217 VOL: 0
-; 0000 0104 TCCR0B=(0<<WGM02) | (0<<CS02) | (0<<CS01) | (0<<CS00);
-;PCODE: $00000218 VOL: 0
-;PCODE: $00000219 VOL: 0
-; 0000 0105 TCNT0=0x00;
-;PCODE: $0000021A VOL: 0
-;PCODE: $0000021B VOL: 0
-; 0000 0106 OCR0A=0x00;
-;PCODE: $0000021C VOL: 0
-;PCODE: $0000021D VOL: 0
-; 0000 0107 OCR0B=0x00;
-;PCODE: $0000021E VOL: 0
-;PCODE: $0000021F VOL: 0
-; 0000 0108 
-; 0000 0109 // Timer/Counter 1 initialization
-; 0000 010A // Clock source: System Clock
-; 0000 010B // Clock value: 125,000 kHz
-; 0000 010C // Mode: Normal top=0xFFFF
-; 0000 010D // OC1A output: Disconnected
-; 0000 010E // OC1B output: Disconnected
-; 0000 010F // Noise Canceler: Off
-; 0000 0110 // Input Capture on Falling Edge
-; 0000 0111 // Timer Period: 0,1 s
-; 0000 0112 // Timer1 Overflow Interrupt: On
-; 0000 0113 // Input Capture Interrupt: Off
-; 0000 0114 // Compare A Match Interrupt: Off
-; 0000 0115 // Compare B Match Interrupt: Off
-; 0000 0116 TCCR1A=(0<<COM1A1) | (0<<COM1A0) | (0<<COM1B1) | (0<<COM1B0) | (0<<WGM11) | (0<<WGM10);
-;PCODE: $00000220 VOL: 0
-;PCODE: $00000221 VOL: 0
-; 0000 0117 TCCR1B=(0<<ICNC1) | (0<<ICES1) | (0<<WGM13) | (0<<WGM12) | (0<<CS12) | (1<<CS11) | (1<<CS10);
-;PCODE: $00000222 VOL: 0
-;PCODE: $00000223 VOL: 0
-; 0000 0118 TCNT1H=0xCF;
-;PCODE: $00000224 VOL: 0
-;PCODE: $00000225 VOL: 0
-; 0000 0119 TCNT1L=0x2C;
-;PCODE: $00000226 VOL: 0
-;PCODE: $00000227 VOL: 0
-; 0000 011A ICR1H=0x00;
-;PCODE: $00000228 VOL: 0
-;PCODE: $00000229 VOL: 0
-; 0000 011B ICR1L=0x00;
-;PCODE: $0000022A VOL: 0
-;PCODE: $0000022B VOL: 0
-; 0000 011C OCR1AH=0x00;
-;PCODE: $0000022C VOL: 0
-;PCODE: $0000022D VOL: 0
-; 0000 011D OCR1AL=0x00;
-;PCODE: $0000022E VOL: 0
-;PCODE: $0000022F VOL: 0
-; 0000 011E OCR1BH=0x00;
-;PCODE: $00000230 VOL: 0
-;PCODE: $00000231 VOL: 0
-; 0000 011F OCR1BL=0x00;
-;PCODE: $00000232 VOL: 0
-;PCODE: $00000233 VOL: 0
-; 0000 0120 // // Timer/Counter 1 initialization
-; 0000 0121 // // Clock source: System Clock
-; 0000 0122 // // Clock value: 31.250 kHz
-; 0000 0123 // // Mode: Normal top=0xFFFF
-; 0000 0124 // // OC1A output: Disconnected
-; 0000 0125 // // OC1B output: Disconnected
-; 0000 0126 // // Noise Canceler: Off
-; 0000 0127 // // Input Capture on Falling Edge
-; 0000 0128 // // Timer Period: 1 s
-; 0000 0129 // // Timer1 Overflow Interrupt: On
-; 0000 012A // // Input Capture Interrupt: Off
-; 0000 012B // // Compare A Match Interrupt: Off
-; 0000 012C // // Compare B Match Interrupt: Off
-; 0000 012D // TCCR1A=(0<<COM1A1) | (0<<COM1A0) | (0<<COM1B1) | (0<<COM1B0) | (0<<WGM11) | (0<<WGM10);
-; 0000 012E // TCCR1B=(0<<ICNC1) | (0<<ICES1) | (0<<WGM13) | (0<<WGM12) | (1<<CS12) | (0<<CS11) | (0<<CS10);
-; 0000 012F // TCNT1H=0x85;
-; 0000 0130 // TCNT1L=0xEE;
-; 0000 0131 // ICR1H=0x00;
-; 0000 0132 // ICR1L=0x00;
-; 0000 0133 // OCR1AH=0x00;
-; 0000 0134 // OCR1AL=0x00;
-; 0000 0135 // OCR1BH=0x00;
-; 0000 0136 // OCR1BL=0x00;
-; 0000 0137 // Timer/Counter 0 Interrupt(s) initialization
-; 0000 0138 TIMSK0=(0<<OCIE0B) | (0<<OCIE0A) | (0<<TOIE0);
-;PCODE: $00000234 VOL: 0
-;PCODE: $00000235 VOL: 0
-; 0000 0139 
-; 0000 013A // Timer/Counter 1 Interrupt(s) initialization
-; 0000 013B TIMSK1=(0<<ICIE1) | (0<<OCIE1B) | (0<<OCIE1A) | (1<<TOIE1);
-;PCODE: $00000236 VOL: 0
-;PCODE: $00000237 VOL: 0
-; 0000 013C 
-; 0000 013D // External Interrupt(s) initialization
-; 0000 013E // INT0: Off
-; 0000 013F // Interrupt on any change on pins PCINT0-7: Off
-; 0000 0140 // Interrupt on any change on pins PCINT8-11: Off
-; 0000 0141 MCUCR=(0<<ISC01) | (0<<ISC00);
-;PCODE: $00000238 VOL: 0
-;PCODE: $00000239 VOL: 0
-; 0000 0142 GIMSK=(0<<INT0) | (0<<PCIE1) | (0<<PCIE0);
-;PCODE: $0000023A VOL: 0
-;PCODE: $0000023B VOL: 0
-; 0000 0143 
-; 0000 0144 // USI initialization
-; 0000 0145 // Mode: Disabled
-; 0000 0146 // Clock source: Register & Counter=no clk.
-; 0000 0147 // USI Counter Overflow Interrupt: Off
-; 0000 0148 USICR=(0<<USISIE) | (0<<USIOIE) | (0<<USIWM1) | (0<<USIWM0) | (0<<USICS1) | (0<<USICS0) | (0<<USICLK) | (0<<USITC);
-;PCODE: $0000023C VOL: 0
-;PCODE: $0000023D VOL: 0
-; 0000 0149 
-; 0000 014A // Analog Comparator initialization
-; 0000 014B // Analog Comparator: Off
-; 0000 014C // The Analog Comparator's positive input is
-; 0000 014D // connected to the AIN0 pin
-; 0000 014E // The Analog Comparator's negative input is
-; 0000 014F // connected to the AIN1 pin
-; 0000 0150 ACSR=(1<<ACD) | (0<<ACBG) | (0<<ACO) | (0<<ACI) | (0<<ACIE) | (0<<ACIC) | (0<<ACIS1) | (0<<ACIS0);
-;PCODE: $0000023E VOL: 0
-;PCODE: $0000023F VOL: 0
-; 0000 0151 // Digital input buffer on AIN0: On
-; 0000 0152 // Digital input buffer on AIN1: On
-; 0000 0153 DIDR0=(0<<ADC1D) | (0<<ADC2D);
-;PCODE: $00000240 VOL: 0
-;PCODE: $00000241 VOL: 0
-; 0000 0154 
-; 0000 0155 
-; 0000 0156 // ADC initialization
-; 0000 0157 // // ADC Clock frequency: 1000.000 kHz
-; 0000 0158 // // ADC Voltage Reference: AVCC pin
-; 0000 0159 // // ADC Bipolar Input Mode: Off
-; 0000 015A // // ADC Auto Trigger Source: ADC Stopped
-; 0000 015B // // Digital input buffers on ADC0: On, ADC1: Off, ADC2: Off, ADC3: Off
-; 0000 015C // // ADC4: On, ADC5: On, ADC6: On, ADC7: Off
-; 0000 015D // DIDR0=(1<<ADC7D) | (0<<ADC6D) | (0<<ADC5D) | (0<<ADC4D) | (1<<ADC3D) | (1<<ADC2D) | (1<<ADC1D) | (0<<ADC0D);
-; 0000 015E // ADMUX=ADC_VREF_TYPE;
-; 0000 015F // ADCSRA=(1<<ADEN) | (0<<ADSC) | (0<<ADATE) | (0<<ADIF) | (0<<ADIE) | (0<<ADPS2) | (1<<ADPS1) | (1<<ADPS0);
-; 0000 0160 // ADCSRB=(0<<BIN) | (0<<ADLAR) | (0<<ADTS2) | (0<<ADTS1) | (0<<ADTS0);
-; 0000 0161 
-; 0000 0162 
-; 0000 0163 // ADC initialization
-; 0000 0164 // ADC Clock frequency: 1000.000 kHz
-; 0000 0165 // ADC Voltage Reference: AVCC pin
-; 0000 0166 // ADC Bipolar Input Mode: Off
-; 0000 0167 // ADC Auto Trigger Source: ADC Stopped
-; 0000 0168 // Digital input buffers on ADC0: Off, ADC1: On, ADC2: On, ADC3: On
-; 0000 0169 // ADC4: Off, ADC5: Off, ADC6: Off, ADC7: On
-; 0000 016A DIDR0=(0<<ADC7D) | (1<<ADC6D) | (1<<ADC5D) | (1<<ADC4D) | (0<<ADC3D) | (0<<ADC2D) | (0<<ADC1D) | (1<<ADC0D);
-;PCODE: $00000242 VOL: 0
-;PCODE: $00000243 VOL: 0
-; 0000 016B ADMUX=ADC_VREF_TYPE;
-;PCODE: $00000244 VOL: 0
-;PCODE: $00000245 VOL: 0
-; 0000 016C ADCSRA=(1<<ADEN) | (0<<ADSC) | (0<<ADATE) | (0<<ADIF) | (0<<ADIE) | (0<<ADPS2) | (1<<ADPS1) | (1<<ADPS0);
-;PCODE: $00000246 VOL: 0
-;PCODE: $00000247 VOL: 0
-; 0000 016D ADCSRB=(0<<BIN) | (0<<ADLAR) | (0<<ADTS2) | (0<<ADTS1) | (0<<ADTS0);
-;PCODE: $00000248 VOL: 0
-;PCODE: $00000249 VOL: 0
-; 0000 016E 
-; 0000 016F 
-; 0000 0170 // Watchdog Timer initialization
-; 0000 0171 // Watchdog Timer Prescaler: OSC/2k
-; 0000 0172 // Watchdog timeout action: Reset
-; 0000 0173 //#pragma optsize-
-; 0000 0174 //WDTCSR=(0<<WDIF) | (0<<WDIE) | (0<<WDP3) | (1<<WDCE) | (1<<WDE) | (0<<WDP2) | (0<<WDP1) | (0<<WDP0);
-; 0000 0175 //WDTCSR=(0<<WDIF) | (0<<WDIE) | (0<<WDP3) | (0<<WDCE) | (1<<WDE) | (0<<WDP2) | (0<<WDP1) | (0<<WDP0);
-; 0000 0176 //#ifdef _OPTIMIZE_SIZE_
-; 0000 0177 //#pragma optsize+
-; 0000 0178 //#endif
-; 0000 0179 
-; 0000 017A // Global enable interrupts
-; 0000 017B #asm("sei")
-;PCODE: $0000024A VOL: 0
-	sei
-;PCODE: $0000024B VOL: 0
-; 0000 017C BUZZER_ON;
-;PCODE: $0000024C VOL: 0
-;PCODE: $0000024D VOL: 0
-; 0000 017D delay_ms(100);
-;PCODE: $0000024E VOL: 0
-;PCODE: $0000024F VOL: 0
-;PCODE: $00000250 VOL: 0
-; 0000 017E BUZZER_OFF;
-;PCODE: $00000251 VOL: 0
-;PCODE: $00000252 VOL: 0
-; 0000 017F delay_ms(100);
-;PCODE: $00000253 VOL: 0
-;PCODE: $00000254 VOL: 0
-;PCODE: $00000255 VOL: 0
-; 0000 0180 BUZZER_ON;
-;PCODE: $00000256 VOL: 0
-;PCODE: $00000257 VOL: 0
-; 0000 0181 delay_ms(100);
-;PCODE: $00000258 VOL: 0
-;PCODE: $00000259 VOL: 0
-;PCODE: $0000025A VOL: 0
-; 0000 0182 BUZZER_OFF;
-;PCODE: $0000025B VOL: 0
-;PCODE: $0000025C VOL: 0
-; 0000 0183 delay_ms(100);
-;PCODE: $0000025D VOL: 0
-;PCODE: $0000025E VOL: 0
-;PCODE: $0000025F VOL: 0
-; 0000 0184 	while (1)
-;PCODE: $00000260 VOL: 0
-; 0000 0185 	{
-; 0000 0186 		Protect_control();
-;PCODE: $00000261 VOL: 0
-; 0000 0187 	}
-;PCODE: $00000262 VOL: 0
-;PCODE: $00000263 VOL: 0
-; 0000 0188 }
-;PCODE: $00000264 VOL: 0
-;PCODE: $00000265 VOL: 0
-;PCODE: $00000266 VOL: 0

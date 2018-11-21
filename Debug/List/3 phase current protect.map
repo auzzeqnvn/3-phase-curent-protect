@@ -1,10 +1,6 @@
 RAM Allocation [bytes]
 Variable                                                                          Address   Size
 ------------------------------------------------------------------------------------------------
-Uint_Current1_adc                                                                 0x0068      20
-Uint_Current2_adc                                                                 0x007C      20
-Uint_Current3_adc                                                                 0x0090      20
-Uint_CurrentSet_adc                                                               0x00A4      20
 
 EEPROM Allocation [bytes]
 Variable                                                                          Address   Size
@@ -13,15 +9,17 @@ Variable                                                                        
 Register Allocation
 Variable                                                                          Register  Size
 ------------------------------------------------------------------------------------------------
-Uchar_Sample_count                                                                R3           1
+Uchar_Sample_count                                                                R4           1
+Uchar_Timer_count                                                                 R3           1
 Bit_AdcSample_full                                                                GPIOR0.0  1bit
 Bit_TimerOverflow                                                                 GPIOR0.1  1bit
+Bit_warning                                                                       GPIOR0.2  1bit
 
 FLASH Allocation [words]
 Function                                                                          Address   Size
 ------------------------------------------------------------------------------------------------
-timer1_ovf_isr                                                                    0x00027      5
-read_adc                                                                          0x0002C     15
-Current_get_value                                                                 0x0003B    159
-Protect_control                                                                   0x000DA     15
-main                                                                              0x000E9     51
+timer1_ovf_isr                                                                    0x0002C     26
+read_adc                                                                          0x00046     15
+Read_value_current                                                                0x00055     66
+Control_ProtectPower                                                              0x00097      6
+main                                                                              0x0009D     50
